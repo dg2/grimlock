@@ -730,6 +730,28 @@ trait ModifyableMatrix[P <: Position with ModifyablePosition] { self: Matrix[P] 
       .join(values)
       .flatMap { case (_, (((l, r, o), (p, c)), (q, d))) => f((p, c), (q, d)) }
   }
+
+  def pairwiseWithValue[D <: Dimension](slice: Slice[P, D], sm: ValuePipe[SliceMap],
+    f: ((P, Content), (P, Content), SliceMap) => Option[(P#S, Content)])(implicit ev: PosDimDep[P, D]): TypedPipe[(P#S, Content)] = {
+    val inverse = slice.inverse
+    val wanted = names(slice).map { case (p, i) => p }
+
+    val pairs = wanted
+      .cross(wanted)
+      .cross(names(inverse))
+      .map { case ((l, r), (o, i)) => (l, r, o) }
+
+    val values = data
+      .groupBy { case (p, c) => (slice.selected(p), inverse.selected(p)) }
+
+    pairs
+      .groupBy { case (l, r, o) => (l, o) }
+      .join(values)
+      .map { case (_, ((l, r, o), (p, c))) => ((l, r, o), (p, c)) }
+      .groupBy { case ((l, r, o), (p, c)) => (r, o) }
+      .join(values)
+      .flatMapWithValue(sm) { case ((_, (((l, r, o), (p, c)), (q, d))), smo) => f((p, c), (q, d), smo.get) }
+  }
 }
 
 /** Define operations that reduce a [[Matrix]]'s dimensions. */
@@ -1130,6 +1152,42 @@ class Matrix2D(val data: TypedPipe[(Position2D, Content)]) extends Matrix[Positi
   def permute[D <: Dimension, E <: Dimension](first: D, second: E)(implicit ev1: PosDimDep[Position2D, D],
     ev2: PosDimDep[Position2D, E], ne: D =!= E): TypedPipe[(Position2D, Content)] = {
     data.map { case (p, c) => (p.permute(List(first, second)), c) }
+  }
+
+  def mutualInformation[D <: Dimension](slice: Slice[Position2D, D])(implicit ev: PosDimDep[Position2D, D]): TypedPipe[(Position1D, Content)] = {
+    implicit def typedPipeSliceSMContent(data: TypedPipe[(slice.S#M, Content)]): Matrix2D = {
+      new Matrix2D(data.asInstanceOf[TypedPipe[(Position2D, Content)]])
+    }
+
+    implicit def typedPipeSliceSContent(data: TypedPipe[(slice.S, Content)]): Matrix1D = {
+      new Matrix1D(data.asInstanceOf[TypedPipe[(Position1D, Content)]])
+    }
+
+    def f(l: (Position, Content), r: (Position, Content)) = ???
+    def g(l: (Position, Content), r: (Position, Content), sm: SliceMap) = ???
+
+    val counts = data
+      .reduce(slice, Count())
+
+    val inverse = slice.inverse
+
+    val entropy = data
+      .reduceAndExpand(slice, Histogram(all=true, meta=false, frequency=false))
+      .reduceAndExpand(inverse, Entropy())
+
+    val pairwise = data
+      .pairwise(slice, f)
+      .reduceAndExpand(slice, Histogram(all=true, meta=false, frequency=false))
+      .transformWithValue(Ratio(First, First), counts.toSliceMap(Over(First)))
+      .reduceAndExpand(inverse, Entropy())
+
+    implicit def typedPipeInverseSMContent(data: TypedPipe[(inverse.S#M, Content)]): Matrix2D = {
+      new Matrix2D(data.asInstanceOf[TypedPipe[(Position2D, Content)]])
+    }
+
+    entropy
+      .pairwiseWithValue(slice, pairwise.toSliceMap(Over(First)), g)
+      .melt(Second, First)
   }
 
   def correlation[D <: Dimension](slice: Slice[Position2D, D])(implicit ev: PosDimDep[Position2D, D]): TypedPipe[(Position1D, Content)] = {

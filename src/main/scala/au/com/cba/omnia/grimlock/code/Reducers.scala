@@ -164,6 +164,7 @@ case class Sum(strict: Boolean = true, nan: Boolean = false, name: String = "sum
  *
  * @param all       Indicator if histogram should apply to all data, or just [[contents.variable.Type.Categorical]].
  * @param meta      Return meta data statistics of the histogram (num categories, frequency ratio, entropy) also.
+ * @param frequency Indicator if categories should be return as frequency or as distribution.
  * @param names     Names for the meta data statistics.
  * @param prefix    Prefix string for use on categories.
  * @param separator If a `prefix` is used, this is the separator used in [[position.Position.toShortString]].
@@ -171,8 +172,9 @@ case class Sum(strict: Boolean = true, nan: Boolean = false, name: String = "sum
  * @note Usage of a `%s` in the prefix will be substituded with [[position.Position.toShortString]].
  */
 // TODO: Add option to limit maximum number of categories
-case class Histogram(all: Boolean = false, meta: Boolean = true, names: List[String] = List("num.cat", "entropy", "freq.ratio"),
-  prefix: Option[String] = Some("%s="), separator: String = "") extends Reducer with PrepareAndWithValue with PresentMultiple {
+case class Histogram(all: Boolean = false, meta: Boolean = true, frequency: Boolean = true,
+  names: List[String] = List("num.cat", "entropy", "freq.ratio"), prefix: Option[String] = Some("%s="),
+  separator: String = "") extends Reducer with PrepareAndWithValue with PresentMultiple {
   type T = Option[Map[String, Long]]
 
   def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P, con: Content): T = {
@@ -210,14 +212,17 @@ case class Histogram(all: Boolean = false, meta: Boolean = true, names: List[Str
           })
         val vals = (m.map {
           case (k, v) => prefix match {
-            case Some(fmt) => (pos.append(fmt.format(pos.toShortString(separator)) + k),
-              Content(DiscreteSchema[Codex.LongCodex](), v))
-            case None => (pos.append(k), Content(DiscreteSchema[Codex.LongCodex](), v))
+            case Some(fmt) => (pos.append(fmt.format(pos.toShortString(separator)) + k), getContent(v, counts))
+            case None => (pos.append(k), getContent(v, counts))
           }
         }).toList
 
         Right(if (meta) stats ++ vals else vals)
     }
+  }
+
+  private def getContent(v: Long, counts: List[Long]): Content = {
+    Content(ContinuousSchema[Codex.DoubleCodex](), if (frequency) v.toDouble else v.toDouble / counts.sum)
   }
 }
 
@@ -353,5 +358,19 @@ case class Percentiles(percentiles: Int,
       }
     }).toList))
   }
+}
+
+case class Entropy(name: String = "entropy") extends Reducer with PrepareAndWithValue with PresentSingleAndMultiple {
+  type T = Double
+
+  def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P, con: Content): T = {
+    con.value.asDouble match {
+     case Some(p) => p * (math.log(p) / math.log(p))
+     case None => Double.NaN
+    }
+  }
+  def reduce(lt: T, rt: T): T = lt + rt
+
+  protected def content(t: T): Option[Content] = Some(Content(ContinuousSchema[Codex.DoubleCodex](), -t))
 }
 
