@@ -331,17 +331,17 @@ object TransformableExpandedWithValue {
     }
 }
 
-trait TransformableX[T] {
+trait TransformableX[T, R] {
   def convert(t: T): Transformer with PresentX
 }
 
 object TransformableX {
-  implicit def TransformerListTransformableX[T <: Transformer with PresentX]: TransformableX[List[T]] =
-    new TransformableX[List[T]] {
-      def convert(t: List[T]): Transformer with PresentX = CombinationTransformerX(t)
+  implicit def TransformerListTransformableX[T <: Transformer with PresentX { type Q >: R }, R]: TransformableX[List[T], R] =
+    new TransformableX[List[T], R] {
+      def convert(t: List[T]): Transformer with PresentX = CombinationTransformerX[Transformer with PresentX, R](t)
     }
-  implicit def TransformerTransformableX[T <: Transformer with PresentX]: TransformableX[T] =
-    new TransformableX[T] {
+  implicit def TransformerTransformableX[T <: Transformer with PresentX { type Q >: R }, R]: TransformableX[T, R] =
+    new TransformableX[T, R] {
       def convert(t: T): Transformer with PresentX = t
     }
 }

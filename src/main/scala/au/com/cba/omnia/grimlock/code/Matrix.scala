@@ -631,8 +631,13 @@ trait ModifyableMatrix[P <: Position with ModifyablePosition] { self: Matrix[P] 
   }
   def transformY[T, R](transformer: List[Transformer with PresentX { type Q = R }], m: ValuePipe[R]): TypedPipe[(P#S, Content)] = {
     val t = CombinationTransformerX[Transformer with PresentX, R](transformer)
-
     data.flatMapWithValue(m) { case ((p, c), smo) => Miscellaneous.mapFlatten(t.presentX(p, c, smo.get)) }
+  }
+
+  def transformZ[T, R](transformer: T, m: ValuePipe[R])(implicit ev: TransformableX[T, R]): TypedPipe[(P#S, Content)] = {
+    val t = ev.convert(transformer)
+
+    data.flatMapWithValue(m) { case ((p, c), smo) => Miscellaneous.mapFlatten(t.presentX(p, c, smo.get.asInstanceOf[t.Q])) }
   }
 
   /**
