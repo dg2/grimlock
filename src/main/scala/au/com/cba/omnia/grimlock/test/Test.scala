@@ -630,5 +630,9 @@ class TestX(args : Args) extends Job(args) {
   data.transformZ(RatioX(First, First), size.toMap(Over(First))).persist("./tmp/x1.out")
   data.transformZ(IndicatorX(First), size.toMap(Over(First))).persist("./tmp/x2.out")
   data.transformZ(List(RatioX(First, First), IndicatorX(Second)), size.toMap(Over(First))).persist("./tmp/x3.out")
+
+  val size2 = data.size(First)
+
+  data.transformZ(List(RatioY(First, First), IndicatorX(Second)), size2.toSliceMap(Over(First))).persist("./tmp/x4.out")
 }
 

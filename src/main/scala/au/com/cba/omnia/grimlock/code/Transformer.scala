@@ -76,11 +76,6 @@ trait PresentWithValue { self: Transformer =>
     sm: SliceMap): Option[Either[(P#S, Content), List[(P#S, Content)]]]
 }
 
-trait PresentX { self: Transformer =>
-  type Q
-  def presentX[P <: Position with ModifyablePosition](pos: P, con: Content, m: Q): Option[Either[(P#S, Content), List[(P#S, Content)]]]
-}
-
 /** Base trait for transformers that expand the [[position.Position]] by appending a dimension. */
 trait PresentExpanded {
   /**
@@ -165,13 +160,6 @@ case class CombinationTransformerWithValue[T <: Transformer with PresentWithValu
   with PresentWithValue {
   def present[P <: Position with ModifyablePosition](pos: P, con: Content, sm: SliceMap) = {
     Some(Right(singles.flatMap { case s => Miscellaneous.mapFlatten(s.present(pos, con, sm)) }))
-  }
-}
-
-case class CombinationTransformerX[T <: Transformer with PresentX, R](singles: List[T]) extends Transformer with PresentX {
-  type Q = R
-  def presentX[P <: Position with ModifyablePosition](pos: P, con: Content, sm: Q) = {
-    Some(Right(singles.flatMap { case s => Miscellaneous.mapFlatten(s.presentX(pos, con, sm.asInstanceOf[s.Q])) }))
   }
 }
 
@@ -329,6 +317,18 @@ object TransformableExpandedWithValue {
     new TransformableExpandedWithValue[T] {
       def convert(t: T): Transformer with PresentExpandedWithValue = t
     }
+}
+
+trait PresentX { self: Transformer =>
+  type Q
+  def presentX[P <: Position with ModifyablePosition](pos: P, con: Content, m: Q): Option[Either[(P#S, Content), List[(P#S, Content)]]]
+}
+
+case class CombinationTransformerX[T <: Transformer with PresentX, R](singles: List[T]) extends Transformer with PresentX {
+  type Q = R
+  def presentX[P <: Position with ModifyablePosition](pos: P, con: Content, sm: Q) = {
+    Some(Right(singles.flatMap { case s => Miscellaneous.mapFlatten(s.presentX(pos, con, sm.asInstanceOf[s.Q])) }))
+  }
 }
 
 trait TransformableX[T, R] {
