@@ -273,20 +273,16 @@ trait Matrix[P <: Position] {
       .sum(Matrix.SliceMapSemigroup)
   }
 
-  def toMap[D <: Dimension](slice: Slice[P, D])(implicit ev: PosDimDep[P, D]): ValuePipe[Map[slice.S, P#C]] = {
+  def toMap[D <: Dimension](slice: Slice[P, D])(implicit ev: PosDimDep[P, D]): ValuePipe[Map[slice.S, slice.C]] = {
     data
-      .map {
-        case (p, c) => (p, Map(slice.selected(p) -> p.toContent(slice.remainder(p).asInstanceOf[Slice[p.S, Dimension]#R], c)))
-      }
+      .map { case (p, c) => (p, slice.toMap(p, c)) }
       .groupBy { case (p, m) => slice.selected(p) }
-      .reduce[(P, Map[slice.S, P#C])] {
-        case ((lp, lm), (rp, rm)) => (lp, lm ++ rm.map {
-          case (k, v) => k -> lp.combine(lm.get(k).asInstanceOf[Option[lp.C]], v.asInstanceOf[lp.C])
-        })
+      .reduce[(P, Map[slice.S, slice.C])] {
+        case ((lp, lm), (rp, rm)) => (lp, slice.combineMaps(lp, lm, rm))
       }
       .map { case (_, (_, m)) => m }
-      .sum(new com.twitter.algebird.Semigroup[Map[slice.S, P#C]] {
-        def plus(l: Map[slice.S, P#C], r: Map[slice.S, P#C]): Map[slice.S, P#C] = {
+      .sum(new com.twitter.algebird.Semigroup[Map[slice.S, slice.C]] {
+        def plus(l: Map[slice.S, slice.C], r: Map[slice.S, slice.C]): Map[slice.S, slice.C] = {
           l ++ r
         }
       })
@@ -398,13 +394,13 @@ trait Matrix[P <: Position] {
    * user supplied value. It keeps only those cells for which `f` returns
    * true.
    *
-   * @param f  Filtering function.
-   * @param sm A `ValuePipe` holding a [[Matrix.SliceMap]].
+   * @param f     Filtering function.
+   * @param value A `ValuePipe` holding a user supplied value.
    *
    * @return A Scalding `TypedPipe[(P, `[[contents.Content]]`)]`.
    */
-  def refineWithValue(f: (P, Content, SliceMap) => Boolean, sm: ValuePipe[SliceMap]): TypedPipe[(P, Content)] = {
-    data.filterWithValue(sm) { case ((p, c), smo) => f(p, c, smo.get) }
+  def refineWithValue[V](f: (P, Content, V) => Boolean, value: ValuePipe[V]): TypedPipe[(P, Content)] = {
+    data.filterWithValue(value) { case ((p, c), vo) => f(p, c, vo.get) }
   }
 
   /**
@@ -600,17 +596,17 @@ trait ModifyableMatrix[P <: Position with ModifyablePosition] { self: Matrix[P] 
    * Transform the [[contents.Content]] of a [[Matrix]] using a user supplied value.
    *
    * @param transformers The transformer(s) to apply to the [[contents.Content]].
-   * @param sm           A `ValuePipe` holding a [[Matrix.SliceMap]].
+   * @param value        A `ValuePipe` holding a user supplied value.
    *
    * @return A Scalding `TypedPipe[(`[[position.Position.S]]`, `[[contents.Content]]`)]`
    *
    * @see [[transform.Transformable]], [[transform.Transformer]], [[Matrix.SliceMap]]
    */
-  def transformWithValue[T](transformers: T,
-    sm: ValuePipe[SliceMap])(implicit ev: TransformableWithValue[T]): TypedPipe[(P#S, Content)] = {
+  def transformWithValue[T, V](transformers: T,
+    value: ValuePipe[V])(implicit ev: TransformableWithValue[T, V]): TypedPipe[(P#S, Content)] = {
     val t = ev.convert(transformers)
 
-    data.flatMapWithValue(sm) { case ((p, c), smo) => Miscellaneous.mapFlatten(t.present(p, c, smo.get)) }
+    data.flatMapWithValue(value) { case ((p, c), vo) => Miscellaneous.mapFlatten(t.present(p, c, vo.get.asInstanceOf[t.V])) }
   }
 
   def sizeX[D <: Dimension](dim: D, distinct: Boolean = false)(implicit ev: PosDimDep[P, D]): TypedPipe[(Position1D, Content)] = {
@@ -633,12 +629,10 @@ trait ModifyableMatrix[P <: Position with ModifyablePosition] { self: Matrix[P] 
   //  val t = CombinationTransformerX[Transformer with PresentX, R](transformer)
   //  data.flatMapWithValue(m) { case ((p, c), smo) => Miscellaneous.mapFlatten(t.presentX(p, c, smo.get)) }
   //}
-
-  def transformZ[T, R](transformer: T, m: ValuePipe[R])(implicit ev: TransformableX[T, R]): TypedPipe[(P#S, Content)] = {
-    val t = ev.convert(transformer)
-
-    data.flatMapWithValue(m) { case ((p, c), smo) => Miscellaneous.mapFlatten(t.presentX(p, c, smo.get.asInstanceOf[t.Q])) }
-  }
+  //def transformZ[T, R](transformer: T, m: ValuePipe[R])(implicit ev: TransformableX[T, R]): TypedPipe[(P#S, Content)] = {
+  //  val t = ev.convert(transformer)
+  //  data.flatMapWithValue(m) { case ((p, c), smo) => Miscellaneous.mapFlatten(t.presentX(p, c, smo.get.asInstanceOf[t.Q])) }
+  //}
 
   /**
    * Create window based derived data.
@@ -892,17 +886,17 @@ trait ExpandableMatrix[P <: Position with ExpandablePosition] { self: Matrix[P] 
    * return the transformations with an expanded [[position.Position]].
    *
    * @param transformers The transformer(s) to apply to the [[contents.Content]].
-   * @param sm           A `ValuePipe` holding a [[Matrix.SliceMap]].
+   * @param value        A `ValuePipe` holding a user supplied value.
    *
    * @return A Scalding `TypedPipe[(`[[position.ExpandablePosition.M]]`, `[[contents.Content]]`)]`
    *
    * @see [[transform.TransformableExpandedWithValue]], [[transform.Transformer]]
    */
-  def transformAndExpandWithValue[T](transformers: T,
-    sm: ValuePipe[SliceMap])(implicit ev: TransformableExpandedWithValue[T]): TypedPipe[(P#M, Content)] = {
+  def transformAndExpandWithValue[T, V](transformers: T,
+    value: ValuePipe[V])(implicit ev: TransformableExpandedWithValue[T, V]): TypedPipe[(P#M, Content)] = {
     val t = ev.convert(transformers)
 
-    data.flatMapWithValue(sm) { case ((p, c), smo) => Miscellaneous.mapFlatten(t.present(p, c, smo.get)) }
+    data.flatMapWithValue(value) { case ((p, c), vo) => Miscellaneous.mapFlatten(t.present(p, c, vo.get.asInstanceOf[t.V])) }
   }
 
   /**
@@ -1200,7 +1194,7 @@ class Matrix2D(val data: TypedPipe[(Position2D, Content)]) extends Matrix[Positi
 
     val mean = data
       .reduceAndExpand(slice, Moments(only = List(1)))
-      .toSliceMap(Over(First))
+      .toMap(Over(First))
 
     val centered = data
       .transformWithValue(Subtract(slice.dimension, "mean"), mean)
@@ -1210,7 +1204,7 @@ class Matrix2D(val data: TypedPipe[(Position2D, Content)]) extends Matrix[Positi
       .reduceAndExpand(slice, Sum())
       .pairwise(slice.inverse, Multiply(slice.inverse))
       .transform(SquareRoot(slice.dimension))
-      .toSliceMap(Over(First))
+      .toMap(Over(First))
 
     centered
       .pairwise(slice, Multiply(slice))

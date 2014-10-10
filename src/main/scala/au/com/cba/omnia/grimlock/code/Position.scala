@@ -29,10 +29,6 @@ trait Position {
   /** Type for positions of same (S) number of dimensions. */
   type S <: Position
 
-  type C
-  def toContent(r: Slice[S, Dimension]#R, c: Content): C
-  def combine(l: Option[C], r: C): C
-
   /** List of [[coordinate.Coordinate]] of the position. */
   val coordinates: List[Coordinate]
 
@@ -146,6 +142,13 @@ trait ReduceablePosition { self: Position =>
     less(h ::: t.drop(1))
   }
 
+  type O
+  type A
+  def toOverMapValue(r: L, c: Content): O
+  def toAlongMapValue(r: Position1D, c: Content): A
+  def combineOverMapValues(x: Option[O], y: O): O
+  def combineAlongMapValues(x: Option[A], y: A): A
+
   /**
    * Melt dimension `dim` into `into`.
    *
@@ -204,10 +207,6 @@ case class Position0D() extends Position with ExpandablePosition {
   type S = Position0D
   type M = Position1D
 
-  type C = Content
-  def toContent(r: Slice[S, Dimension]#R, c: Content): C = ???
-  def combine(l: Option[C], r: C): C = ???
-
   val coordinates = List()
 
   def more(cl: List[Coordinate]): M = Position1D(cl(0))
@@ -224,9 +223,13 @@ case class Position1D(first: Coordinate) extends Position with ModifyablePositio
   type S = Position1D
   type M = Position2D
 
-  type C = Content
-  def toContent(r: Slice[S, Dimension]#R, c: Content): C = c
-  def combine(l: Option[C], r: C): C = r
+  type O = Content
+  type A = Content
+  def toOverMapValue(r: L, c: Content): O = c
+  def toAlongMapValue(r: Position1D, c: Content): A = c
+  def combineOverMapValues(x: Option[O], y: O): O = combineMapValues(x, y)
+  def combineAlongMapValues(x: Option[A], y: A): A = combineMapValues(x, y)
+  private def combineMapValues(l: Option[Content], r: Content): Content = r
 
   val coordinates = List(first)
 
@@ -262,9 +265,13 @@ case class Position2D(first: Coordinate, second: Coordinate) extends Position wi
   type S = Position2D
   type M = Position3D
 
-  type C = Map[Slice[S, Dimension]#R, Content]
-  def toContent(r: Slice[S, Dimension]#R, c: Content): C = Map(r -> c)
-  def combine(l: Option[C], r: C): C = {
+  type O = Map[Position1D, Content]
+  type A = Map[Position1D, Content]
+  def toOverMapValue(r: L, c: Content): O = Map(r -> c)
+  def toAlongMapValue(r: Position1D, c: Content): A = Map(r -> c)
+  def combineOverMapValues(x: Option[O], y: O): O = combineMapValues(x, y)
+  def combineAlongMapValues(x: Option[A], y: A): A = combineMapValues(x, y)
+  private def combineMapValues(l: Option[Map[Position1D, Content]], r: Map[Position1D, Content]): Map[Position1D, Content] = {
     l match {
       case Some(x) => x ++ r
       case None => r
@@ -307,9 +314,13 @@ case class Position3D(first: Coordinate, second: Coordinate, third: Coordinate) 
   type S = Position3D
   type M = Position4D
 
-  type C = Map[Slice[S, Dimension]#R, Content]
-  def toContent(r: Slice[S, Dimension]#R, c: Content): C = Map(r -> c)
-  def combine(l: Option[C], r: C): C = {
+  type O = Map[Position2D, Content]
+  type A = Map[Position1D, Content]
+  def toOverMapValue(r: L, c: Content): O = Map(r -> c)
+  def toAlongMapValue(r: Position1D, c: Content): A = Map(r -> c)
+  def combineOverMapValues(x: Option[O], y: O): O = combineMapValues(x, y)
+  def combineAlongMapValues(x: Option[A], y: A): A = combineMapValues(x, y)
+  private def combineMapValues[P <: Position](l: Option[Map[P, Content]], r: Map[P, Content]): Map[P, Content] = {
     l match {
       case Some(x) => x ++ r
       case None => r
@@ -355,9 +366,13 @@ case class Position4D(first: Coordinate, second: Coordinate, third: Coordinate,
   type S = Position4D
   type M = Position5D
 
-  type C = Map[Slice[S, Dimension]#R, Content]
-  def toContent(r: Slice[S, Dimension]#R, c: Content): C = Map(r -> c)
-  def combine(l: Option[C], r: C): C = {
+  type O = Map[Position3D, Content]
+  type A = Map[Position1D, Content]
+  def toOverMapValue(r: L, c: Content): O = Map(r -> c)
+  def toAlongMapValue(r: Position1D, c: Content): A = Map(r -> c)
+  def combineOverMapValues(x: Option[O], y: O): O = combineMapValues(x, y)
+  def combineAlongMapValues(x: Option[A], y: A): A = combineMapValues(x, y)
+  private def combineMapValues[P <: Position](l: Option[Map[P, Content]], r: Map[P, Content]): Map[P, Content] = {
     l match {
       case Some(x) => x ++ r
       case None => r
@@ -404,9 +419,13 @@ case class Position5D(first: Coordinate, second: Coordinate, third: Coordinate,
   type L = Position4D
   type S = Position5D
 
-  type C = Map[Slice[S, Dimension]#R, Content]
-  def toContent(r: Slice[S, Dimension]#R, c: Content): C = Map(r -> c)
-  def combine(l: Option[C], r: C): C = {
+  type O = Map[Position4D, Content]
+  type A = Map[Position1D, Content]
+  def toOverMapValue(r: L, c: Content): O = Map(r -> c)
+  def toAlongMapValue(r: Position1D, c: Content): A = Map(r -> c)
+  def combineOverMapValues(x: Option[O], y: O): O = combineMapValues(x, y)
+  def combineAlongMapValues(x: Option[A], y: A): A = combineMapValues(x, y)
+  private def combineMapValues[P <: Position](l: Option[Map[P, Content]], r: Map[P, Content]): Map[P, Content] = {
     l match {
       case Some(x) => x ++ r
       case None => r

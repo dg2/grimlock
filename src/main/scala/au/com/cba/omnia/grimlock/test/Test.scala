@@ -16,6 +16,7 @@ package grimlock.test
 
 import com.twitter.scalding._
 import com.twitter.scalding.TDsl._, Dsl._
+import com.twitter.scalding.typed.IterablePipe
 import cascading.flow.FlowDef
 
 import grimlock._
@@ -438,7 +439,7 @@ class Test17(args : Args) extends Job(args) {
 
   val stats = data
     .reduceAndExpand(Along(First), List(Count(), Moments(only=List(1)), Min(), Max(), MaxAbs()))
-    .toSliceMap(Over(First))
+    .toMap(Over(First))
 
   data
     .transformWithValue(Normalise(Second), stats)
@@ -448,9 +449,9 @@ class Test17(args : Args) extends Job(args) {
     .refine((pos: Position2D, con: Content) => con.value gtr 500)
     .writeCSV(Over(Second), "./tmp/flt1.csv")
 
-  def removeGreaterThanMean(pos: Position2D, con: Content, sm: SliceMap): Boolean = {
+  def removeGreaterThanMean(pos: Position2D, con: Content, ext: Map[Position1D, Map[Position1D, Content]]): Boolean = {
     if (con.schema.kind.isSpecialisationOf(Numerical)) {
-      con.value leq sm(Position1D(pos.get(Second)))(Position1D("mean")).value
+      con.value leq ext(Position1D(pos.get(Second)))(Position1D("mean")).value
     } else {
       true
     }
@@ -513,7 +514,7 @@ class Test19(args : Args) extends Job(args) {
     parts
       .get(p)
       .slice(Over(Second), rem, false)
-      .transformWithValue(List(Indicator(Second), Binarise(Second), Normalise(Second)), stats.toSliceMap(Over(First)))
+      .transformWithValue(List(Indicator(Second), Binarise(Second), Normalise(Second)), stats.toMap(Over(First)))
       .fill(Content(ContinuousSchema[Codex.LongCodex](), 0))
       .writeCSV(Over(Second), "./tmp/pln_" + p + ".csv")
   }
@@ -621,18 +622,28 @@ class TestX(args : Args) extends Job(args) {
 
   val data = read2D("numericInputfile.txt")
 
-  val size = data.sizeX(First).persist("./tmp/x0.out")
+  val size = data.sizeX(First).persist("./tmp/x0.out").toMap(Over(First))
 
   //data.transformX(RatioX(First, First))(size.toMap(Over(First))).persist("./tmp/x1.out")
   //data.transformX(IndicatorX(First))(size.toMap(Over(First))).persist("./tmp/x2.out")
   //data.transformY(List(RatioX(First, First), IndicatorX(Second)), size.toMap(Over(First))).persist("./tmp/x3.out")
 
-  data.transformZ(RatioX(First, First), size.toMap(Over(First))).persist("./tmp/x1.out")
-  data.transformZ(IndicatorX(First), size.toMap(Over(First))).persist("./tmp/x2.out")
-  data.transformZ(List(RatioX(First, First), IndicatorX(Second)), size.toMap(Over(First))).persist("./tmp/x3.out")
+  data.transformWithValue(RatioX(First, First), size).persist("./tmp/x1.out")
+  data.transformWithValue(Indicator(First), size).persist("./tmp/x2.out")
+  data.transformWithValue(List(RatioX(First, First), Indicator(Second)), size).persist("./tmp/x3.out")
 
   val size2 = data.size(First)
 
-  data.transformZ(List(RatioY(First, First), IndicatorX(Second)), size2.toSliceMap(Over(First))).persist("./tmp/x4.out")
+  data.transformWithValue(List(RatioY(First, First), Indicator(Second)), size2.toSliceMap(Over(First))).persist("./tmp/x4.out")
+
+  def getList()(implicit flow: FlowDef, mode: Mode): ValuePipe[List[(Position1D, Content)]] = {
+    new IterablePipe(List((Position1D(First.toString), Content(DiscreteSchema[Codex.LongCodex], 2))), flow, mode)
+      .map(List(_))
+      .sum
+  }
+
+  val size3 = getList()
+
+  data.transformWithValue(List(RatioZ(First, First), Indicator(Second)), size3).persist("./tmp/x5.out")
 }
 

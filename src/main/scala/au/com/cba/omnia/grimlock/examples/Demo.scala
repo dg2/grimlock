@@ -157,7 +157,7 @@ class DataSciencePipelineWithFiltering(args : Args) extends Job(args) {
 
     val csb = d
       .slice(Over(Second), rem2, false)
-      .transformWithValue(List(Clamp(Second, andThen=Some(Standardise(Second))), Binarise(Second)), stats.toSliceMap(Over(First)))
+      .transformWithValue(List(Clamp(Second, andThen=Some(Standardise(Second))), Binarise(Second)), stats.toMap(Over(First)))
       .slice(Over(Second), rem3, false)
 
     (ind ++ csb)
@@ -170,7 +170,7 @@ class Scoring(args : Args) extends Job(args) {
   // Read the data. This returns a 2D matrix (instance x feature).
   val data = read2D("exampleInput.txt")
   // Read the statistics from the above example.
-  val stats = read2D("./demo/stats.out").toSliceMap(Over(First))
+  val stats = read2D("./demo/stats.out").toMap(Over(First))
   // Read externally learned weights.
   val weights = read2D("exampleWeights.txt").toSliceMap(Over(First))
 
