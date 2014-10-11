@@ -26,7 +26,6 @@ import grimlock.position._
 import grimlock.position.coordinate._
 
 /** Convenience trait for transformations involving `Double` values. */
-// TODO: Make this into utility function for SliceMap?
 trait AsDouble {
   protected def getAsDouble[T: Coordinateable, U: Coordinateable](con: Content,
     ext: Map[Position1D, Map[Position1D, Content]], index1: T, index2: U): Option[Double] = {
@@ -108,7 +107,7 @@ case class Binarise(dim: Dimension, separator: String = "=") extends Transformer
  * Normalise numeric variables.
  *
  * @param dim    [[position.Dimension]] for for which to create normalised variables.
- * @param state  Name of the field in a [[Matrix.SliceMap]] which is used as the normalisation constant.
+ * @param state  Name of the field in user supplied value which is used as the normalisation constant.
  * @param suffix Suffix for the new name of the coordinate at `dim`.
  *
  * @note Normalisation scales a variable in the range [-1, 1].
@@ -132,7 +131,7 @@ case class Normalise(dim: Dimension, state: String = "max.abs",
  * Standardise numeric variables.
  *
  * @param dim       [[position.Dimension]] for for which to create standardised variables.
- * @param state     List of names of the fields in a [[Matrix.SliceMap]] which is used as the standardisation constants.
+ * @param state     List of names of the fields in the user supplied value which is used as the standardisation constants.
  * @param threshold Minimum standard deviation threshold. Values less than this result in standardised value of zero.
  * @param suffix    Suffix for the new name of the coordinate at `dim`.
  *
@@ -159,7 +158,7 @@ case class Standardise(dim: Dimension, state: List[String] = List("mean", "std")
  * Clamp numeric variables.
  *
  * @param dim       [[position.Dimension]] for for which to create clamped variables.
- * @param state     List of names of the fields in a [[Matrix.SliceMap]] which is used as the clamping constants.
+ * @param state     List of names of the fields in user supplied value which is used as the clamping constants.
  * @param suffix    Suffix for the new name of the coordinate at `dim`.
  * @param andThen   Optional transformation to apply after clamping.
  *
@@ -193,7 +192,7 @@ case class Clamp[T <: Transformer with PresentWithValue](dim: Dimension, state: 
  * Compute the inverse document frequency.
  *
  * @param from  [[position.Dimension]] of the documents.
- * @param state Name of the field in a [[Matrix.SliceMap]] which is used as the number of documents.
+ * @param state Name of the field in user supplied value which is used as the number of documents.
  * @param name  Name of the idf [[position.coordinate.Coordinate]].
  * @param log   Log function to use.
  * @param add   Amount to add to the idf numerator.
@@ -262,7 +261,7 @@ case class LogarithmicTf(dim: Dimension, suffix: String = "",
  * Create augmented term frequencies.
  *
  * @param dim    [[position.Dimension]] for which to create boolean term frequencies.
- * @param state  Name of the field in a [[Matrix.SliceMap]] which is used as the maximum term frequency.
+ * @param state  Name of the field in user supplied value which is used as the maximum term frequency.
  * @param suffix Suffix for the new name of the coordinate at `dim`.
  *
  * @note Augmented tf is only applied to [[contents.variable.Type.Numerical]] variables.
@@ -285,7 +284,7 @@ case class AugmentedTf(dim: Dimension, state: String = "max",
  * Create tf-idf values.
  *
  * @param dim    [[position.Dimension]] for which to create boolean term frequencies.
- * @param state  Name of the field in a [[Matrix.SliceMap]] which is used as the inverse document frequency.
+ * @param state  Name of the field in user supplied value which is used as the inverse document frequency.
  * @param suffix Suffix for the new name of the coordinate at `dim`.
  *
  * @note Tf-idf is only applied to [[contents.variable.Type.Numerical]] variables.
@@ -355,18 +354,6 @@ case class RatioX(dim: Dimension, from: Dimension, suffix: String = "",
   type V = Map[Position1D, Content]
   def present[P <: Position with ModifyablePosition](pos: P, con: Content, m: V) = {
     (con.value.asDouble, m(Position1D(from.toString)).value.asDouble) match {
-      case (Some(l), Some(r)) => Some(Left((pos.set(dim, pos.get(dim).toShortString + suffix),
-        Content(ContinuousSchema[Codex.DoubleCodex](), if (inverse) r / l else l / r))))
-      case _ => None
-    }
-  }
-}
-
-case class RatioY(dim: Dimension, from: Dimension, suffix: String = "",
-  inverse: Boolean = false) extends Transformer with PresentWithValue {
-  type V = SliceMap //Map[Position1D, Map[Position1D, Content]]
-  def present[P <: Position with ModifyablePosition](pos: P, con: Content, m: V) = {
-    (con.value.asDouble, m(Position1D(from.toString))(Position1D("size")).value.asDouble) match {
       case (Some(l), Some(r)) => Some(Left((pos.set(dim, pos.get(dim).toShortString + suffix),
         Content(ContinuousSchema[Codex.DoubleCodex](), if (inverse) r / l else l / r))))
       case _ => None

@@ -58,17 +58,19 @@ trait Prepare { self: Reducer =>
 
 /** Base trait for reduction preparation with a user supplied value. */
 trait PrepareWithValue { self: Reducer =>
+  type V
+
   /**
    * Prepare for reduction.
    *
    * @param pos Original [[position.Position]] corresponding to the [[contents.Content]].
    *            That is, it's the position prior to [[Slice.selected]] being applied.
    * @param con [[contents.Content]] which is to be reduced.
-   * @param sm  [[Matrix.SliceMap]] which contains user provided data required for preparation.
+   * @param ext User provided data required for preparation.
    *
    * @return State to reduce.
    */
-  def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P, con: Content, sm: SliceMap): T
+  def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P, con: Content, ext: V): T
 }
 
 /** Base trait for reductions that return a single value. */
@@ -158,12 +160,13 @@ case class CombinationReducerMultiple[T <: Reducer with Prepare with PresentMult
  *       [[ReducerableMultipleWithValue]] type class will convert any
  *       `List[`[[Reducer]]`]` automatically to one of these.
  */
-case class CombinationReducerMultipleWithValue[T <: Reducer with PrepareWithValue with PresentMultiple](reducers: List[T])
+case class CombinationReducerMultipleWithValue[T <: Reducer with PrepareWithValue with PresentMultiple, W](reducers: List[T])
   extends Reducer with PrepareWithValue with PresentMultiple {
   type T = List[Any]
+  type V = W
 
-  def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P, con: Content, sm: SliceMap): T = {
-    reducers.map { case reducer => reducer.prepare(slc, pos, con, sm) }
+  def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P, con: Content, ext: V): T = {
+    reducers.map { case reducer => reducer.prepare(slc, pos, con, ext.asInstanceOf[reducer.V]) }
   }
 
   def reduce(lt: T, rt: T): T = {
@@ -210,7 +213,7 @@ object ReducerableMultiple {
 }
 
 /** Type class for transforming a type `T` to a [[Reducer]] with [[PrepareWithValue]] with [[PresentMultiple]]. */
-trait ReducerableMultipleWithValue[T] {
+trait ReducerableMultipleWithValue[T, W] {
   /**
    * Returns a [[Reducer]] with [[PrepareWithValue]] with [[PresentMultiple]] for type `T`.
    *
@@ -225,16 +228,16 @@ object ReducerableMultipleWithValue {
    * Converts a `List[`[[Reducer]] with [[PrepareWithValue]] with [[PresentMultiple]]`]` to a single
    * [[Reducer]] with [[PrepareWithValue]] with [[PresentMultiple]] using [[CombinationReducerMultipleWithValue]].
    */
-  implicit def ReducerListReducerableMultipleWithValue[T <: Reducer with PrepareWithValue with PresentMultiple]: ReducerableMultipleWithValue[List[T]] =
-    new ReducerableMultipleWithValue[List[T]] {
-      def convert(t: List[T]): Reducer with PrepareWithValue with PresentMultiple = CombinationReducerMultipleWithValue(t)
+  implicit def ReducerListReducerableMultipleWithValue[T <: Reducer with PrepareWithValue with PresentMultiple { type V >: W }, W]: ReducerableMultipleWithValue[List[T], W] =
+    new ReducerableMultipleWithValue[List[T], W] {
+      def convert(t: List[T]): Reducer with PrepareWithValue with PresentMultiple = CombinationReducerMultipleWithValue[Reducer with PrepareWithValue with PresentMultiple, W](t)
     }
   /**
    * Converts a [[Reducer]] with [[PrepareWithValue]] with [[PresentMultiple]] to a [[Reducer]] with
    * [[PrepareWithValue]] with [[PresentMultiple]]; that is, it is a pass through.
    */
-  implicit def ReducerReducerableMultipleWithValue[T <: Reducer with PrepareWithValue with PresentMultiple]: ReducerableMultipleWithValue[T] =
-    new ReducerableMultipleWithValue[T] {
+  implicit def ReducerReducerableMultipleWithValue[T <: Reducer with PrepareWithValue with PresentMultiple { type V >: W }, W]: ReducerableMultipleWithValue[T, W] =
+    new ReducerableMultipleWithValue[T, W] {
       def convert(t: T): Reducer with PrepareWithValue with PresentMultiple = t
     }
 }

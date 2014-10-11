@@ -25,7 +25,9 @@ import grimlock.position._
 
 /** Convenience trait for [[Reducer]]s that can prepare with or without a user supplied value. */
 trait PrepareAndWithValue extends Prepare with PrepareWithValue { self: Reducer =>
-  def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P, con: Content, sm: SliceMap): T = prepare(slc, pos, con)
+  type V = Any
+
+  def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P, con: Content, ext: V): T = prepare(slc, pos, con)
 }
 
 /** Convenience trait for [[Reducer]]s that present a value both as [[PresentSingle]] and [[PresentMultiple]]. */
@@ -269,16 +271,17 @@ case class ThresholdCount(strict: Boolean = true, nan: Boolean = false, threshol
  * Weighted sum reduction. This is particularly useful for scoring linear models.
  *
  * @param dim    Dimension for for which to create weigthed variables.
- * @param state  Name of the field in a [[Matrix.SliceMap]] which is used as the weights.
+ * @param state  Name of the field in the user supplied value which is used as the weights.
  */
 case class WeightedSum(dim: Dimension, state: String = "weight") extends Reducer with PrepareWithValue with PresentSingle {
   type T = Double
+  type V = Map[Position1D, Map[Position1D, Content]]
 
-  def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P, con: Content, sm: SliceMap): T = {
+  def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P, con: Content, ext: V): T = {
     val key = Position1D(pos.get(dim))
 
-    if (con.schema.kind.isSpecialisationOf(Numerical) && sm.isDefinedAt(key)) {
-      (con.value.asDouble, sm(key)(Position1D(state)).value.asDouble) match {
+    if (con.schema.kind.isSpecialisationOf(Numerical) && ext.isDefinedAt(key)) {
+      (con.value.asDouble, ext(key)(Position1D(state)).value.asDouble) match {
         case (Some(v), Some(w)) => v * w
         case _ => throw new Exception("Unable to compute weighted sum with non-numeric value")
       }

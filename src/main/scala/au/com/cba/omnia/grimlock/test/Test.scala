@@ -622,19 +622,11 @@ class TestX(args : Args) extends Job(args) {
 
   val data = read2D("numericInputfile.txt")
 
-  val size = data.sizeX(First).persist("./tmp/x0.out").toMap(Over(First))
-
-  //data.transformX(RatioX(First, First))(size.toMap(Over(First))).persist("./tmp/x1.out")
-  //data.transformX(IndicatorX(First))(size.toMap(Over(First))).persist("./tmp/x2.out")
-  //data.transformY(List(RatioX(First, First), IndicatorX(Second)), size.toMap(Over(First))).persist("./tmp/x3.out")
+  val size = data.size(First).persist("./tmp/x0.out").toMap(Over(First))
 
   data.transformWithValue(RatioX(First, First), size).persist("./tmp/x1.out")
   data.transformWithValue(Indicator(First), size).persist("./tmp/x2.out")
   data.transformWithValue(List(RatioX(First, First), Indicator(Second)), size).persist("./tmp/x3.out")
-
-  val size2 = data.size(First)
-
-  data.transformWithValue(List(RatioY(First, First), Indicator(Second)), size2.toSliceMap(Over(First))).persist("./tmp/x4.out")
 
   def getList()(implicit flow: FlowDef, mode: Mode): ValuePipe[List[(Position1D, Content)]] = {
     new IterablePipe(List((Position1D(First.toString), Content(DiscreteSchema[Codex.LongCodex], 2))), flow, mode)

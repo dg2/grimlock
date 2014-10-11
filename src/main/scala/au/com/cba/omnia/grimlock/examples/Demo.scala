@@ -172,7 +172,7 @@ class Scoring(args : Args) extends Job(args) {
   // Read the statistics from the above example.
   val stats = read2D("./demo/stats.out").toMap(Over(First))
   // Read externally learned weights.
-  val weights = read2D("exampleWeights.txt").toSliceMap(Over(First))
+  val weights = read2D("exampleWeights.txt").toMap(Over(First))
 
   // For the data do:
   //  1/ Create indicators, binarise categorical, and clamp &
