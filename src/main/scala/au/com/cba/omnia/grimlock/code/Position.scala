@@ -82,7 +82,10 @@ trait Position {
   }
 }
 
-/** Trait for operations that modify a position (but keep the number of dimensions the same). */
+/**
+ * Trait for operations that modify a position (but keep the number of
+ * dimensions the same).
+ */
 trait ModifyablePosition { self: Position =>
   /**
    * Update the [[coordinate.Coordinate]] at `dim` with `t`.
@@ -90,12 +93,14 @@ trait ModifyablePosition { self: Position =>
    * @param dim The [[Dimension]] to set.
    * @param t   The [[coordinate.Coordinate]] to set.
    *
-   * @return A [[Position]] of the same size as `this` but with `t` set at index `dim`.
+   * @return A [[Position]] of the same size as `this` but with `t` set
+   *         at index `dim`.
    *
    * @see [[coordinate.Coordinateable]]
    */
   def set[T: Coordinateable](dim: Dimension, t: T): S = {
-    same(coordinates.updated(dim.index, implicitly[Coordinateable[T]].convert(t)))
+    same(coordinates.updated(dim.index,
+      implicitly[Coordinateable[T]].convert(t)))
   }
 
   /**
@@ -116,7 +121,9 @@ trait ModifyablePosition { self: Position =>
     same(coordinates
       .zip(that.coordinates)
       .map {
-        case (l, r) if (l != r) => StringCoordinate(pattern.format(l.toShortString, r.toShortString), StringCodex)
+        case (l, r) if (l != r) =>
+          StringCoordinate(pattern.format(l.toShortString, r.toShortString),
+            StringCodex)
         case (l, r) => l
       })
   }
@@ -154,7 +161,8 @@ trait ReduceablePosition { self: Position =>
    *
    * @param dim       The [[Dimension]] to remove.
    * @param into      The [[Dimension]] into which to melt.
-   * @param separator The separator to use in the new [[coordinate.Coordinate]] name.
+   * @param separator The separator to use in the new
+   *                  [[coordinate.Coordinate]] name.
    *
    * @return A new [[Position]] with dimension `dim` removed.
    *         The [[coordinate.Coordinate]] at `unto` will be
@@ -167,8 +175,9 @@ trait ReduceablePosition { self: Position =>
    */
   def melt(dim: Dimension, into: Dimension, separator: String): L = {
     val (h, t) = coordinates
-      .updated(into.index, StringCoordinate(coordinates(into.index).toShortString + separator +
-        coordinates(dim.index).toShortString, StringCodex))
+      .updated(into.index,
+        StringCoordinate(coordinates(into.index).toShortString + separator +
+          coordinates(dim.index).toShortString, StringCodex))
       .splitAt(dim.index)
 
     less(h ::: t.drop(1))
@@ -217,8 +226,7 @@ case class Position0D() extends Position with ExpandablePosition {
  *
  * @param first [[coordinate.Coordinate]] for the first dimension.
  */
-case class Position1D(first: Coordinate) extends Position with ModifyablePosition with ReduceablePosition
-  with ExpandablePosition {
+case class Position1D(first: Coordinate) extends Position with ModifyablePosition with ReduceablePosition with ExpandablePosition {
   type L = Position0D
   type S = Position1D
   type M = Position2D
@@ -259,8 +267,7 @@ object Position1D {
  * @param first  [[coordinate.Coordinate]] for the first dimension.
  * @param second [[coordinate.Coordinate]] for the second dimension.
  */
-case class Position2D(first: Coordinate, second: Coordinate) extends Position with ModifyablePosition with ReduceablePosition
-  with ExpandablePosition {
+case class Position2D(first: Coordinate, second: Coordinate) extends Position with ModifyablePosition with ReduceablePosition with ExpandablePosition {
   type L = Position1D
   type S = Position2D
   type M = Position3D
@@ -271,7 +278,8 @@ case class Position2D(first: Coordinate, second: Coordinate) extends Position wi
   def toAlongMapValue(r: Position1D, c: Content): A = Map(r -> c)
   def combineOverMapValues(x: Option[O], y: O): O = combineMapValues(x, y)
   def combineAlongMapValues(x: Option[A], y: A): A = combineMapValues(x, y)
-  private def combineMapValues(l: Option[Map[Position1D, Content]], r: Map[Position1D, Content]): Map[Position1D, Content] = {
+  private def combineMapValues(l: Option[Map[Position1D, Content]],
+    r: Map[Position1D, Content]): Map[Position1D, Content] = {
     l match {
       case Some(x) => x ++ r
       case None => r
@@ -297,7 +305,8 @@ object Position2D {
    * @see [[coordinate.Coordinateable]]
    */
   def apply[S: Coordinateable, T: Coordinateable](s: S, t: T): Position2D = {
-    Position2D(implicitly[Coordinateable[S]].convert(s), implicitly[Coordinateable[T]].convert(t))
+    Position2D(implicitly[Coordinateable[S]].convert(s),
+      implicitly[Coordinateable[T]].convert(t))
   }
 }
 
@@ -308,8 +317,7 @@ object Position2D {
  * @param second [[coordinate.Coordinate]] for the second dimension.
  * @param third  [[coordinate.Coordinate]] for the third dimension.
  */
-case class Position3D(first: Coordinate, second: Coordinate, third: Coordinate) extends Position with ModifyablePosition
-  with ReduceablePosition with ExpandablePosition {
+case class Position3D(first: Coordinate, second: Coordinate, third: Coordinate) extends Position with ModifyablePosition with ReduceablePosition with ExpandablePosition {
   type L = Position2D
   type S = Position3D
   type M = Position4D
@@ -320,7 +328,8 @@ case class Position3D(first: Coordinate, second: Coordinate, third: Coordinate) 
   def toAlongMapValue(r: Position1D, c: Content): A = Map(r -> c)
   def combineOverMapValues(x: Option[O], y: O): O = combineMapValues(x, y)
   def combineAlongMapValues(x: Option[A], y: A): A = combineMapValues(x, y)
-  private def combineMapValues[P <: Position](l: Option[Map[P, Content]], r: Map[P, Content]): Map[P, Content] = {
+  private def combineMapValues[P <: Position](l: Option[Map[P, Content]],
+    r: Map[P, Content]): Map[P, Content] = {
     l match {
       case Some(x) => x ++ r
       case None => r
@@ -331,14 +340,16 @@ case class Position3D(first: Coordinate, second: Coordinate, third: Coordinate) 
 
   protected def less(cl: List[Coordinate]): L = Position2D(cl(0), cl(1))
   protected def same(cl: List[Coordinate]): S = Position3D(cl(0), cl(1), cl(2))
-  protected def more(cl: List[Coordinate]): M = Position4D(cl(0), cl(1), cl(2), cl(3))
+  protected def more(cl: List[Coordinate]): M = {
+    Position4D(cl(0), cl(1), cl(2), cl(3))
+  }
 }
 
 /** Companion object to [[Position3D]]. */
 object Position3D {
   /**
-   * Construct a [[Position3D]] from types `S`, `T` and `U` for which there exist
-   * [[coordinate.Coordinateable]]s.
+   * Construct a [[Position3D]] from types `S`, `T` and `U` for which there
+   * exist [[coordinate.Coordinateable]]s.
    *
    * @param s The first coordinate value from which to create a [[Position3D]].
    * @param t The second coordinate value from which to create a [[Position3D]].
@@ -346,8 +357,10 @@ object Position3D {
    *
    * @see [[coordinate.Coordinateable]]
    */
-  def apply[S: Coordinateable, T: Coordinateable, U: Coordinateable](s: S, t: T, u: U): Position3D = {
-    Position3D(implicitly[Coordinateable[S]].convert(s), implicitly[Coordinateable[T]].convert(t),
+  def apply[S: Coordinateable, T: Coordinateable, U: Coordinateable](s: S,
+    t: T, u: U): Position3D = {
+    Position3D(implicitly[Coordinateable[S]].convert(s),
+      implicitly[Coordinateable[T]].convert(t),
       implicitly[Coordinateable[U]].convert(u))
   }
 }
@@ -372,7 +385,8 @@ case class Position4D(first: Coordinate, second: Coordinate, third: Coordinate,
   def toAlongMapValue(r: Position1D, c: Content): A = Map(r -> c)
   def combineOverMapValues(x: Option[O], y: O): O = combineMapValues(x, y)
   def combineAlongMapValues(x: Option[A], y: A): A = combineMapValues(x, y)
-  private def combineMapValues[P <: Position](l: Option[Map[P, Content]], r: Map[P, Content]): Map[P, Content] = {
+  private def combineMapValues[P <: Position](l: Option[Map[P, Content]],
+    r: Map[P, Content]): Map[P, Content] = {
     l match {
       case Some(x) => x ++ r
       case None => r
@@ -382,15 +396,19 @@ case class Position4D(first: Coordinate, second: Coordinate, third: Coordinate,
   val coordinates = List(first, second, third, fourth)
 
   protected def less(cl: List[Coordinate]): L = Position3D(cl(0), cl(1), cl(2))
-  protected def same(cl: List[Coordinate]): S = Position4D(cl(0), cl(1), cl(2), cl(3))
-  protected def more(cl: List[Coordinate]): M = Position5D(cl(0), cl(1), cl(2), cl(3), cl(4))
+  protected def same(cl: List[Coordinate]): S = {
+    Position4D(cl(0), cl(1), cl(2), cl(3))
+  }
+  protected def more(cl: List[Coordinate]): M = {
+    Position5D(cl(0), cl(1), cl(2), cl(3), cl(4))
+  }
 }
 
 /** Companion object to [[Position4D]]. */
 object Position4D {
   /**
-   * Construct a [[Position4D]] from types `S`, `T`, `U` and `V` for which there exist
-   * [[coordinate.Coordinateable]]s.
+   * Construct a [[Position4D]] from types `S`, `T`, `U` and `V` for which
+   * there exist [[coordinate.Coordinateable]]s.
    *
    * @param s The first coordinate value from which to create a [[Position4D]].
    * @param t The second coordinate value from which to create a [[Position4D]].
@@ -400,8 +418,10 @@ object Position4D {
    * @see [[coordinate.Coordinateable]]
    */
   def apply[S: Coordinateable, T: Coordinateable, U: Coordinateable, V: Coordinateable](s: S, t: T, u: U, v: V): Position4D = {
-    Position4D(implicitly[Coordinateable[S]].convert(s), implicitly[Coordinateable[T]].convert(t),
-      implicitly[Coordinateable[U]].convert(u), implicitly[Coordinateable[V]].convert(v))
+    Position4D(implicitly[Coordinateable[S]].convert(s),
+      implicitly[Coordinateable[T]].convert(t),
+      implicitly[Coordinateable[U]].convert(u),
+      implicitly[Coordinateable[V]].convert(v))
   }
 }
 
@@ -425,7 +445,8 @@ case class Position5D(first: Coordinate, second: Coordinate, third: Coordinate,
   def toAlongMapValue(r: Position1D, c: Content): A = Map(r -> c)
   def combineOverMapValues(x: Option[O], y: O): O = combineMapValues(x, y)
   def combineAlongMapValues(x: Option[A], y: A): A = combineMapValues(x, y)
-  private def combineMapValues[P <: Position](l: Option[Map[P, Content]], r: Map[P, Content]): Map[P, Content] = {
+  private def combineMapValues[P <: Position](l: Option[Map[P, Content]],
+    r: Map[P, Content]): Map[P, Content] = {
     l match {
       case Some(x) => x ++ r
       case None => r
@@ -434,15 +455,19 @@ case class Position5D(first: Coordinate, second: Coordinate, third: Coordinate,
 
   val coordinates = List(first, second, third, fourth, fifth)
 
-  protected def less(cl: List[Coordinate]): L = Position4D(cl(0), cl(1), cl(2), cl(3))
-  protected def same(cl: List[Coordinate]): S = Position5D(cl(0), cl(1), cl(2), cl(3), cl(4))
+  protected def less(cl: List[Coordinate]): L = {
+    Position4D(cl(0), cl(1), cl(2), cl(3))
+  }
+  protected def same(cl: List[Coordinate]): S = {
+    Position5D(cl(0), cl(1), cl(2), cl(3), cl(4))
+  }
 }
 
 /** Companion object to [[Position5D]]. */
 object Position5D {
   /**
-   * Construct a [[Position5D]] from types `S`, `T`, `U`, `V` and `W` for which there exist
-   * [[coordinate.Coordinateable]]s.
+   * Construct a [[Position5D]] from types `S`, `T`, `U`, `V` and `W` for
+   * which there exist [[coordinate.Coordinateable]]s.
    *
    * @param s The first coordinate value from which to create a [[Position5D]].
    * @param t The second coordinate value from which to create a [[Position5D]].
@@ -452,10 +477,11 @@ object Position5D {
    *
    * @see [[coordinate.Coordinateable]]
    */
-  def apply[S: Coordinateable, T: Coordinateable, U: Coordinateable, V: Coordinateable, W: Coordinateable](s: S,
-    t: T, u: U, v: V, w: W): Position5D = {
-    Position5D(implicitly[Coordinateable[S]].convert(s), implicitly[Coordinateable[T]].convert(t),
-      implicitly[Coordinateable[U]].convert(u), implicitly[Coordinateable[V]].convert(v),
+  def apply[S: Coordinateable, T: Coordinateable, U: Coordinateable, V: Coordinateable, W: Coordinateable](s: S, t: T, u: U, v: V, w: W): Position5D = {
+    Position5D(implicitly[Coordinateable[S]].convert(s),
+      implicitly[Coordinateable[T]].convert(t),
+      implicitly[Coordinateable[U]].convert(u),
+      implicitly[Coordinateable[V]].convert(v),
       implicitly[Coordinateable[W]].convert(w))
   }
 }
@@ -467,9 +493,11 @@ object Position5D {
  */
 class PositionPipe[P <: Position](data: TypedPipe[P]) {
   /**
-   * Returns the distinct [[position.Position]](s) (or names) for a given `slice`.
+   * Returns the distinct [[position.Position]](s) (or names) for a given
+   * `slice`.
    *
-   * @param slice Encapsulates the dimension(s) for which the names are to be returned.
+   * @param slice Encapsulates the dimension(s) for which the names are to
+   *              be returned.
    *
    * @return A Scalding `TypedPipe[(`[[Slice.S]]`, Long)]` of the distinct
    *         [[Position]](s) together with a unique index.
@@ -481,7 +509,9 @@ class PositionPipe[P <: Position](data: TypedPipe[P]) {
    * @see [[Names]]
    */
   def names[D <: Dimension](slice: Slice[P, D])(implicit ev: PosDimDep[P, D]): TypedPipe[(slice.S, Long)] = {
-    implicit def PositionOrdering[T <: Position] = new Ordering[T] { def compare(l: T, r: T) = l.compare(r) }
+    implicit def PositionOrdering[T <: Position] = {
+      new Ordering[T] { def compare(l: T, r: T) = l.compare(r) }
+    }
 
     Names.number(data.map { case p => slice.selected(p) }.distinct)
   }
@@ -490,13 +520,16 @@ class PositionPipe[P <: Position](data: TypedPipe[P]) {
    * Persist a `TypedPipe[`[[Position]]`]` to disk.
    *
    * @param file        Name of the output file.
-   * @param separator   Separator to use between [[position.Position]] and [[contents.Content]].
+   * @param separator   Separator to use between [[position.Position]] and
+   *                    [[contents.Content]].
    * @param descriptive Indicates if the output should be descriptive.
    *
-   * @return A Scalding `TypedPipe[`[[Position]]`]` which is this [[PositionPipe]].
+   * @return A Scalding `TypedPipe[`[[Position]]`]` which is this
+   *         [[PositionPipe]].
    */
-  def persist(file: String, separator: String = "|", descriptive: Boolean = false)(implicit flow: FlowDef,
-    mode: Mode): TypedPipe[P] = {
+  def persist(file: String, separator: String = "|",
+    descriptive: Boolean = false)(implicit flow: FlowDef,
+      mode: Mode): TypedPipe[P] = {
     data
       .map {
         case p => descriptive match {
@@ -531,13 +564,21 @@ trait Positionable[T, P <: Position] {
 
 /** Companion object for the [[Positionable]] type class. */
 object Positionable {
-  /** Converts a [[Position]] to a [[Position]]; that is, it's a pass through. */
-  implicit def PositionPositionable[T <: Position]: Positionable[T, T] = new Positionable[T, T] {
-    def convert(t: T): T = t
+  /**
+   * Converts a [[Position]] to a [[Position]]; that is, it's a pass through.
+   */
+  implicit def PositionPositionable[T <: Position]: Positionable[T, T] = {
+    new Positionable[T, T] {
+      def convert(t: T): T = t
+    }
   }
   /** Converts a [[coordinate.Coordinateable]] to a [[Position]]. */
-  implicit def CoordinateablePositionable[T: Coordinateable]: Positionable[T, Position1D] = new Positionable[T, Position1D] {
-    def convert(t: T): Position1D = Position1D(implicitly[Coordinateable[T]].convert(t))
+  implicit def CoordinateablePositionable[T: Coordinateable]: Positionable[T, Position1D] = {
+    new Positionable[T, Position1D] {
+      def convert(t: T): Position1D = {
+        Position1D(implicitly[Coordinateable[T]].convert(t))
+      }
+    }
   }
 }
 
@@ -554,18 +595,22 @@ trait PositionListable[T, P <: Position] {
 /** Companion object for the [[PositionListable]] type class. */
 object PositionListable {
   /** Converts a `List[`[[Positionable]]`]` to a `List[`[[Position]]`]`. */
-  implicit def ListPositionablePositionListable[T, P <: Position](implicit ev: Positionable[T, P]): PositionListable[List[T], P] =
+  implicit def ListPositionablePositionListable[T, P <: Position](implicit ev: Positionable[T, P]): PositionListable[List[T], P] = {
     new PositionListable[List[T], P] {
       def convert(t: List[T]): List[P] = t.map(ev.convert(_))
     }
+  }
   /** Converts a [[Positionable]] to a `List[`[[Position]]`]`. */
-  implicit def PositionablePositionListable[T, P <: Position](implicit ev: Positionable[T, P]): PositionListable[T, P] =
+  implicit def PositionablePositionListable[T, P <: Position](implicit ev: Positionable[T, P]): PositionListable[T, P] = {
     new PositionListable[T, P] {
       def convert(t: T): List[P] = List(ev.convert(t))
     }
+  }
 }
 
-/** Type class for transforming a type `T` into a `TypedPipe[`[[Position]]`]`. */
+/**
+ * Type class for transforming a type `T` into a `TypedPipe[`[[Position]]`]`.
+ */
 trait PositionPipeable[T, P <: Position] {
   /**
    * Returns a `TypedPipe[`[[Position]]`]` for type `T`.
@@ -576,22 +621,30 @@ trait PositionPipeable[T, P <: Position] {
 }
 
 object PositionPipeable {
-  /** Converts a `TypedPipe[`[[Position]]`]` to a `TypedPipe[`[[Position]]`]`; that is, it's a pass through. */
-  implicit def PipePositionPositionPipeable[P <: Position]: PositionPipeable[TypedPipe[P], P] =
+  /**
+   * Converts a `TypedPipe[`[[Position]]`]` to a `TypedPipe[`[[Position]]`]`;
+   * that is, it's a pass through.
+   */
+  implicit def PipePositionPositionPipeable[P <: Position]: PositionPipeable[TypedPipe[P], P] = {
     new PositionPipeable[TypedPipe[P], P] {
       def convert(t: TypedPipe[P]): TypedPipe[P] = t
     }
+  }
   /** Converts a `List[`[[Positionable]]`]` to a `TypedPipe[`[[Position]]`]`. */
-  implicit def ListPositionablePositionPipeable[T, P <: Position](implicit ev: Positionable[T, P], flow: FlowDef,
-    mode: Mode): PositionPipeable[List[T], P] =
+  implicit def ListPositionablePositionPipeable[T, P <: Position](implicit ev: Positionable[T, P], flow: FlowDef, mode: Mode): PositionPipeable[List[T], P] = {
     new PositionPipeable[List[T], P] {
-      def convert(t: List[T]): TypedPipe[P] = new IterablePipe(t.map(ev.convert(_)), flow, mode)
+      def convert(t: List[T]): TypedPipe[P] = {
+        new IterablePipe(t.map(ev.convert(_)), flow, mode)
+      }
     }
+  }
   /** Converts a [[Positionable]] to a `TypedPipe[`[[Position]]`]`. */
-  implicit def PositionablePositionPipeable[T, P <: Position](implicit ev: Positionable[T, P], flow: FlowDef,
-    mode: Mode): PositionPipeable[T, P] =
+  implicit def PositionablePositionPipeable[T, P <: Position](implicit ev: Positionable[T, P], flow: FlowDef, mode: Mode): PositionPipeable[T, P] = {
     new PositionPipeable[T, P] {
-      def convert(t: T): TypedPipe[P] = new IterablePipe(List(ev.convert(t)), flow, mode)
+      def convert(t: T): TypedPipe[P] = {
+        new IterablePipe(List(ev.convert(t)), flow, mode)
+      }
     }
+  }
 }
 

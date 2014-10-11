@@ -22,24 +22,30 @@ import grimlock.contents.variable._
 import grimlock.position._
 
 /**
- * Rich wrapper around a `TypedPipe[(`[[position.Position]]`, `[[contents.variable.Type]]`)]`.
+ * Rich wrapper around a `TypedPipe[(`[[position.Position]]`,
+ * `[[contents.variable.Type]]`)]`.
  *
- * @param data `TypedPipe[(`[[position.Position]]`, `[[contents.variable.Type]]`)]`.
+ * @param data `TypedPipe[(`[[position.Position]]`,
+ *             `[[contents.variable.Type]]`)]`.
  *
- * @note This class represents the [[contents.variable.Type]] along the dimensions of a [[Matrix]].
+ * @note This class represents the [[contents.variable.Type]] along the
+ *       dimensions of a [[Matrix]].
  */
 class Types[P <: Position](data: TypedPipe[(P, Type)]) {
   /**
    * Persist [[Types]] to disk.
    *
    * @param file        Name of the output file.
-   * @param separator   Separator to use between [[position.Position]] and [[contents.variable.Type]].
+   * @param separator   Separator to use between [[position.Position]] and
+   *                    [[contents.variable.Type]].
    * @param descriptive Indicates if the output should be descriptive.
    *
-   * @return A Scalding `TypedPipe[(P, `[[contents.variable.Type]]`)]` which is this [[Types]].
+   * @return A Scalding `TypedPipe[(P, `[[contents.variable.Type]]`)]` which
+   *         is this [[Types]].
    */
-  def persist(file: String, separator: String = "|", descriptive: Boolean = false)(implicit flow: FlowDef,
-    mode: Mode): TypedPipe[(P, Type)] = {
+  def persist(file: String, separator: String = "|",
+    descriptive: Boolean = false)(implicit flow: FlowDef,
+      mode: Mode): TypedPipe[(P, Type)] = {
     data
       .map {
         case (p, t) => descriptive match {
@@ -55,7 +61,10 @@ class Types[P <: Position](data: TypedPipe[(P, Type)]) {
 }
 
 object Types {
-  /** Conversion from `TypedPipe[(`[[position.Position]]`, `[[contents.variable.Type]]`)]` to a [[Types]]. */
+  /**
+   * Conversion from `TypedPipe[(`[[position.Position]]`,
+   * `[[contents.variable.Type]]`)]` to a [[Types]].
+   */
   implicit def typedPipePositionType[P <: Position](data: TypedPipe[(P, Type)]): Types[P] = {
     new Types(data)
   }

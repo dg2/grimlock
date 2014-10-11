@@ -14,6 +14,8 @@
 
 package grimlock.contents.encoding
 
+import java.text.SimpleDateFormat
+
 import grimlock.contents.events._
 import grimlock.contents.variable._
 import grimlock.position.coordinate._
@@ -61,7 +63,10 @@ trait Codex {
   }
 }
 
-/** Base trait for encoding/decoding basic data types as [[contents.variable.Value]]. */
+/**
+ * Base trait for encoding/decoding basic data types as
+ * [[contents.variable.Value]].
+ */
 trait ValueCodex { self: Codex =>
   /** The specific type of [[contents.variable.Value]]. */
   type V <: Value
@@ -85,10 +90,12 @@ trait ValueCodex { self: Codex =>
    *
    * @param value String to decode into a [[contents.variable.Value]].
    *
-   * @return `Some(`[[contents.variable.Value]]`)` if the decode was successful,
-   *         `None` otherwise.
+   * @return `Some(`[[contents.variable.Value]]`)` if the decode was
+   *         successful, `None` otherwise.
    */
-  def decode(value: String): Option[V] = parse(value).map { case t => toValue(t) }
+  def decode(value: String): Option[V] = {
+    parse(value).map { case t => toValue(t) }
+  }
 
   /**
    * Converts a [[contents.variable.Value]] to a consise (terse) string.
@@ -112,7 +119,10 @@ trait ValueCodex { self: Codex =>
   def compare(x: Value, y: Value): Option[Int]
 }
 
-/** Base trait for encoding/decoding basic data types as [[position.coordinate.Coordinate]]. */
+/**
+ * Base trait for encoding/decoding basic data types as
+ * [[position.coordinate.Coordinate]].
+ */
 trait CoordinateCodex { self: Codex =>
   /** The specific type of [[position.coordinate.Coordinate]]. */
   type C <: Coordinate
@@ -127,7 +137,8 @@ trait CoordinateCodex { self: Codex =>
   /**
    * Extract a basic data type from a [[position.coordinate.Coordinate]].
    *
-   * @param value [[position.coordinate.Coordinate]] from which to extract the data.
+   * @param value [[position.coordinate.Coordinate]] from which to extract
+   *        the data.
    */
   def fromCoordinate(value: Coordinate): T
 
@@ -136,19 +147,24 @@ trait CoordinateCodex { self: Codex =>
    *
    * @param value String to read into a [[position.coordinate.Coordinate]].
    *
-   * @return `Some(`[[position.coordinate.Coordinate]]`)` if the decode was successful,
-   *         `None` otherwise.
+   * @return `Some(`[[position.coordinate.Coordinate]]`)` if the decode was
+   *         successful, `None` otherwise.
    */
-  def read(value: String): Option[C] = parse(value).map { case t => toCoordinate(t) }
+  def read(value: String): Option[C] = {
+    parse(value).map { case t => toCoordinate(t) }
+  }
 
   /**
    * Converts a [[position.coordinate.Coordinate]] to a consise (terse) string.
    *
    * @param t The [[position.coordinate.Coordinate]] to convert to string.
    *
-   * @return Short string representation of the [[position.coordinate.Coordinate]].
+   * @return Short string representation of the
+   *         [[position.coordinate.Coordinate]].
    */
-  def toShortString(value: Coordinate): String = toShortString(fromCoordinate(value))
+  def toShortString(value: Coordinate): String = {
+    toShortString(fromCoordinate(value))
+  }
 
   /**
    * Compare two [[position.coordinate.Coordinate]]s.
@@ -169,7 +185,8 @@ object Codex {
    *
    * @param str The name of the [[Codex]].
    *
-   * @return `Some(`[[Codex]]`)` if the name maps to a know [[Codex]], `None` otherwise.
+   * @return `Some(`[[Codex]]`)` if the name maps to a know [[Codex]],
+   *         `None` otherwise.
    */
   def fromString[T](str: String): Option[Codex] = {
     str match {
@@ -183,30 +200,66 @@ object Codex {
     }
   }
 
-  /** Shorthand for [[DateCodex]] type (for use with [[contents.metadata.Schema]]. */
+  /**
+   * Shorthand for [[DateCodex]] type (for use with
+   * [[contents.metadata.Schema]]).
+   */
   type DateCodex = DateCodex.type
-  /** Shorthand for [[DateTimeCodex]] type (for use with [[contents.metadata.Schema]]. */
+  /**
+   * Shorthand for [[DateTimeCodex]] type (for use with
+   * [[contents.metadata.Schema]]).
+   */
   type DateTimeCodex = DateTimeCodex.type
-  /** Shorthand for [[StringCodex]] type (for use with [[contents.metadata.Schema]]. */
+  /**
+   * Shorthand for [[StringCodex]] type (for use with
+   * [[contents.metadata.Schema]]).
+   */
   type StringCodex = StringCodex.type
-  /** Shorthand for [[DoubleCodex]] type (for use with [[contents.metadata.Schema]]. */
+  /**
+   * Shorthand for [[DoubleCodex]] type (for use with
+   * [[contents.metadata.Schema]]).
+   */
   type DoubleCodex = DoubleCodex.type
-  /** Shorthand for [[LongCodex]] type (for use with [[contents.metadata.Schema]]. */
+  /**
+   * Shorthand for [[LongCodex]] type (for use with
+   * [[contents.metadata.Schema]]).
+   */
   type LongCodex = LongCodex.type
-  /** Shorthand for [[BooleanCodex]] type (for use with [[contents.metadata.Schema]]. */
+  /**
+   * Shorthand for [[BooleanCodex]] type (for use with
+   * [[contents.metadata.Schema]]).
+   */
   type BooleanCodex = BooleanCodex.type
 
-  /** Implicit value for [[DateCodex]] (for use with [[contents.metadata.Schema]]. */
+  /**
+   * Implicit value for [[DateCodex]] (for use with
+   * [[contents.metadata.Schema]]).
+   */
   implicit val tc: DateCodex = DateCodex
-  /** Implicit value for [[DateTimeCodex]] (for use with [[contents.metadata.Schema]]. */
+  /**
+   * Implicit value for [[DateTimeCodex]] (for use with
+   * [[contents.metadata.Schema]]).
+   */
   implicit val dtc: DateTimeCodex = DateTimeCodex
-  /** Implicit value for [[StringCodex]] (for use with [[contents.metadata.Schema]]. */
+  /**
+   * Implicit value for [[StringCodex]] (for use with
+   * [[contents.metadata.Schema]]).
+   */
   implicit val sc: StringCodex = StringCodex
-  /** Implicit value for [[DoubleCodex]] (for use with [[contents.metadata.Schema]]. */
+  /**
+   * Implicit value for [[DoubleCodex]] (for use with
+   * [[contents.metadata.Schema]]).
+   */
   implicit val dc: DoubleCodex = DoubleCodex
-  /** Implicit value for [[LongCodex]] (for use with [[contents.metadata.Schema]]. */
+  /**
+   * Implicit value for [[LongCodex]] (for use with
+   * [[contents.metadata.Schema]]).
+   */
   implicit val lc: LongCodex = LongCodex
-  /** Implicit value for [[BooleanCodex]] (for use with [[contents.metadata.Schema]]. */
+  /**
+   * Implicit value for [[BooleanCodex]] (for use with
+   * [[contents.metadata.Schema]]).
+   */
   implicit val bc: BooleanCodex = BooleanCodex
 }
 
@@ -225,10 +278,16 @@ trait DateAndTimeCodex extends Codex with ValueCodex with CoordinateCodex {
 
   def toCoordinate(value: T): C = DateCoordinate(value, this)
   def fromCoordinate(value: Coordinate): T = value.asInstanceOf[C].value
-  def compare(x: Coordinate, y: Coordinate): Option[Int] = compare(x.asDate, y.asDate)
+  def compare(x: Coordinate, y: Coordinate): Option[Int] = {
+    compare(x.asDate, y.asDate)
+  }
 
-  def parse(value: String): Option[T] = parse(value, (str: String) => (new java.text.SimpleDateFormat(format)).parse(str))
-  def toShortString(value: T): String = (new java.text.SimpleDateFormat(format)).format(value)
+  def parse(value: String): Option[T] = {
+    parse(value, (str: String) => (new SimpleDateFormat(format)).parse(str))
+  }
+  def toShortString(value: T): String = {
+    (new SimpleDateFormat(format)).format(value)
+  }
   def compare(x: Option[T], y: Option[T]): Option[Int] = {
     (x, y) match {
       case (Some(l), Some(r)) => Some(l.getTime().compare(r.getTime()))
@@ -243,7 +302,10 @@ case object DateCodex extends DateAndTimeCodex {
   val format = "yyyy-MM-dd"
 }
 
-/** [[Codex]] for dealing with `java.util.Date` formatted as `yyyy-MM-dd hh:mm:ss`. */
+/**
+ * [[Codex]] for dealing with `java.util.Date` formatted as
+ * `yyyy-MM-dd hh:mm:ss`.
+ */
 case object DateTimeCodex extends DateAndTimeCodex {
   val name = "date.time"
   val format = "yyyy-MM-dd hh:mm:ss"
@@ -259,11 +321,15 @@ case object StringCodex extends Codex with ValueCodex with CoordinateCodex {
 
   def toValue(value: T): V = StringValue(value, this)
   def fromValue(value: Value): T = value.asInstanceOf[V].value
-  def compare(x: Value, y: Value): Option[Int] = compare(x.asString, y.asString)
+  def compare(x: Value, y: Value): Option[Int] = {
+    compare(x.asString, y.asString)
+  }
 
   def toCoordinate(value: T): C = StringCoordinate(value, this)
   def fromCoordinate(value: Coordinate): T = value.asInstanceOf[C].value
-  def compare(x: Coordinate, y: Coordinate): Option[Int] = compare(x.asString, y.asString)
+  def compare(x: Coordinate, y: Coordinate): Option[Int] = {
+    compare(x.asString, y.asString)
+  }
 
   def parse(value: String): Option[T] = Some(value)
   def toShortString(value: T): String = value
@@ -284,7 +350,9 @@ case object DoubleCodex extends Codex with ValueCodex {
 
   def toValue(value: T): V = DoubleValue(value, this)
   def fromValue(value: Value): T = value.asInstanceOf[V].value
-  def compare(x: Value, y: Value): Option[Int] = compare(x.asDouble, y.asDouble)
+  def compare(x: Value, y: Value): Option[Int] = {
+    compare(x.asDouble, y.asDouble)
+  }
 
   def parse(value: String): Option[T] = parse(value, _.toDouble)
   def toShortString(value: T): String = value.toString
@@ -315,7 +383,9 @@ case object LongCodex extends Codex with ValueCodex with CoordinateCodex {
 
   def toCoordinate(value: T): C = LongCoordinate(value, this)
   def fromCoordinate(value: Coordinate): T = value.asInstanceOf[C].value
-  def compare(x: Coordinate, y: Coordinate): Option[Int] = compare(x.asLong, y.asLong)
+  def compare(x: Coordinate, y: Coordinate): Option[Int] = {
+    compare(x.asLong, y.asLong)
+  }
 
   def parse(value: String): Option[T] = parse(value, _.toLong)
   def toShortString(value: T): String = value.toString
@@ -336,7 +406,9 @@ case object BooleanCodex extends Codex with ValueCodex {
 
   def toValue(value: T): V = BooleanValue(value, this)
   def fromValue(value: Value): T = value.asInstanceOf[V].value
-  def compare(x: Value, y: Value): Option[Int] = compare(x.asBoolean, y.asBoolean)
+  def compare(x: Value, y: Value): Option[Int] = {
+    compare(x.asBoolean, y.asBoolean)
+  }
 
   def parse(value: String): Option[T] = parse(value, _.toBoolean)
   def toShortString(value: T): String = value.toString

@@ -50,7 +50,9 @@ sealed trait Slice[P <: Position, D <: Dimension] {
   def combineMaps(pos: P, x: Map[S, C], y: Map[S, C]): Map[S, C]
 }
 
-trait Mapable[P <: Position with ReduceablePosition, D <: Dimension] { self: Slice[P, D] =>
+trait Mapable[P <: Position with ReduceablePosition, D <: Dimension] {
+  self: Slice[P, D] =>
+
   protected def remove(pos: P): pos.L = pos.remove(dimension)
   protected def single(pos: P): Position1D = Position1D(pos.get(dimension))
 }
@@ -72,10 +74,14 @@ case class Over[P <: Position with ReduceablePosition, D <: Dimension](dimension
   def remainder(pos: P): R = remove(pos)
   def inverse(): I = Along(dimension)
 
-  def toMap(pos: P, con: Content): Map[S, C] = Map(single(pos) -> pos.toOverMapValue(remove(pos), con))
+  def toMap(pos: P, con: Content): Map[S, C] = {
+    Map(single(pos) -> pos.toOverMapValue(remove(pos), con))
+  }
   def combineMaps(pos: P, x: Map[S, C], y: Map[S, C]): Map[S, C] = {
     x ++ y.map {
-      case (k, v) => k -> pos.combineOverMapValues(x.get(k).asInstanceOf[Option[pos.O]], v.asInstanceOf[pos.O])
+      case (k, v) =>
+        k -> pos.combineOverMapValues(x.get(k).asInstanceOf[Option[pos.O]],
+          v.asInstanceOf[pos.O])
     }
   }
 }
@@ -83,8 +89,9 @@ case class Over[P <: Position with ReduceablePosition, D <: Dimension](dimension
 /**
  * Indicates that the selected coordinates are all except the one indexed
  * by `dimension`. In other words, when a groupBy is performed, it is
- * performed using a [[position.Position]] (type [[position.ReduceablePosition.L]])
- * consisting of all coordinates except that at index `dimension`.
+ * performed using a [[position.Position]] (type
+ * [[position.ReduceablePosition.L]]) consisting of all coordinates except
+ * that at index `dimension`.
  *
  * @param dimension [[position.Dimension]] of the coordinate to exclude.
  */
@@ -98,10 +105,14 @@ case class Along[P <: Position with ReduceablePosition, D <: Dimension](dimensio
   def remainder(pos: P): R = single(pos)
   def inverse(): I = Over(dimension)
 
-  def toMap(pos: P, con: Content): Map[S, C] = Map(remove(pos) -> pos.toAlongMapValue(single(pos), con))
+  def toMap(pos: P, con: Content): Map[S, C] = {
+    Map(remove(pos) -> pos.toAlongMapValue(single(pos), con))
+  }
   def combineMaps(pos: P, x: Map[S, C], y: Map[S, C]): Map[S, C] = {
     x ++ y.map {
-      case (k, v) => k -> pos.combineAlongMapValues(x.get(k).asInstanceOf[Option[pos.A]], v.asInstanceOf[pos.A])
+      case (k, v) =>
+        k -> pos.combineAlongMapValues(x.get(k).asInstanceOf[Option[pos.A]],
+          v.asInstanceOf[pos.A])
     }
   }
 }

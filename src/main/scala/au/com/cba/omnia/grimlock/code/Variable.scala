@@ -107,7 +107,9 @@ trait Value {
    *
    * @note This always applies [[Value.toShortString]] before matching.
    */
-  def like(that: Regex): Boolean = that.pattern.matcher(this.toShortString).matches
+  def like(that: Regex): Boolean = {
+    that.pattern.matcher(this.toShortString).matches
+  }
 
   // Note: These next 4 methods implement comparison in a non-standard
   //       way when comparing two objects that can't be compared. In
@@ -119,7 +121,8 @@ trait Value {
    *
    * @param that Value to compare against.
    *
-   * @note If `that` is of a different type than `this`, then the result is always `false`.
+   * @note If `that` is of a different type than `this`, then the result
+   *       is always `false`.
    *
    * @see [[Valueable]]
    */
@@ -130,7 +133,8 @@ trait Value {
    *
    * @param that Value to compare against.
    *
-   * @note If `that` is of a different type than `this`, then the result is always `false`.
+   * @note If `that` is of a different type than `this`, then the result
+   *       is always `false`.
    *
    * @see [[Valueable]]
    */
@@ -141,7 +145,8 @@ trait Value {
    *
    * @param that Value to compare against.
    *
-   * @note If `that` is of a different type than `this`, then the result is always `false`.
+   * @note If `that` is of a different type than `this`, then the result
+   *       is always `false`.
    *
    * @see [[Valueable]]
    */
@@ -152,7 +157,8 @@ trait Value {
    *
    * @param that Value to compare against.
    *
-   * @note If `that` is of a different type than `this`, then the result is always `false`.
+   * @note If `that` is of a different type than `this`, then the result
+   *       is always `false`.
    *
    * @see [[Valueable]]
    */
@@ -175,7 +181,8 @@ trait Value {
   def toShortString: String = codex.toShortString(this)
 
   private def eval[T: Valueable](that: T, op: CompareResult): Boolean = {
-    CompareResult.evaluate(codex.compare(this, implicitly[Valueable[T]].convert(that)), op)
+    CompareResult.evaluate(codex.compare(this,
+      implicitly[Valueable[T]].convert(that)), op)
   }
 }
 
@@ -183,9 +190,11 @@ trait Value {
  * Value for when the data is of type `java.util.Date`
  *
  * @param value A `java.util.Date`.
- * @param codex The [[contents.encoding.Codex]] used for encoding/decoding `value`.
+ * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
+ *              `value`.
  */
-case class DateValue(value: java.util.Date, codex: DateAndTimeCodex) extends Value {
+case class DateValue(value: java.util.Date,
+  codex: DateAndTimeCodex) extends Value {
   override def asDate = Some(value)
 }
 
@@ -193,9 +202,11 @@ case class DateValue(value: java.util.Date, codex: DateAndTimeCodex) extends Val
  * Value for when the data is of type `String`.
  *
  * @param value A `String`.
- * @param codex The [[contents.encoding.Codex]] used for encoding/decoding `value`.
+ * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
+ *              `value`.
  */
-case class StringValue(value: String, codex: Codex with ValueCodex) extends Value {
+case class StringValue(value: String,
+  codex: Codex with ValueCodex) extends Value {
   override def asString = Some(value.toString)
 }
 
@@ -203,9 +214,11 @@ case class StringValue(value: String, codex: Codex with ValueCodex) extends Valu
  * Value for when the data is of type `Double`.
  *
  * @param value A `Double`.
- * @param codex The [[contents.encoding.Codex]] used for encoding/decoding `value`.
+ * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
+ *              `value`.
  */
-case class DoubleValue(value: Double, codex: Codex with ValueCodex) extends Value {
+case class DoubleValue(value: Double,
+  codex: Codex with ValueCodex) extends Value {
   override def asDouble = Some(value)
 }
 
@@ -213,9 +226,11 @@ case class DoubleValue(value: Double, codex: Codex with ValueCodex) extends Valu
  * Value for when the data is of type `Long`.
  *
  * @param value A `Long`.
- * @param codex The [[contents.encoding.Codex]] used for encoding/decoding `value`.
+ * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
+ *              `value`.
  */
-case class LongValue(value: Long, codex: Codex with ValueCodex) extends Value {
+case class LongValue(value: Long,
+  codex: Codex with ValueCodex) extends Value {
   override def asDouble = Some(value)
   override def asLong = Some(value)
 }
@@ -224,9 +239,11 @@ case class LongValue(value: Long, codex: Codex with ValueCodex) extends Value {
  * Value for when the data is of type `Boolean`.
  *
  * @param value A `Boolean`.
- * @param codex The [[contents.encoding.Codex]] used for encoding/decoding `value`.
+ * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
+ *              `value`.
  */
-case class BooleanValue(value: Boolean, codex: Codex with ValueCodex) extends Value {
+case class BooleanValue(value: Boolean,
+  codex: Codex with ValueCodex) extends Value {
   override def asBoolean = Some(value)
 }
 
@@ -234,7 +251,8 @@ case class BooleanValue(value: Boolean, codex: Codex with ValueCodex) extends Va
  * Value for when the data is of type [[contents.events.Event]].
  *
  * @param value A [[contents.events.Event]].
- * @param codex The [[contents.encoding.Codex]] used for encoding/decoding `value`.
+ * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
+ *              `value`.
  */
 case class EventValue[T <: Event](value: T, codex: EventCodex) extends Value {
   override def asEvent = Some(value)

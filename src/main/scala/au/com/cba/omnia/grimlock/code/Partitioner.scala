@@ -27,18 +27,20 @@ object Partitioner {
   /**
    * Type for partitioning a [[Matrix]].
    *
-   * @note An `Option` is returned to allow partitioners to be selective in which
-   *       partition a [[position.Position]] is assigned to. An `Either` is returned
-   *       to allow a partitioner to assign a [[position.Position]] to more than
-   *       one partition.
+   * @note An `Option` is returned to allow partitioners to be selective in
+   *       which partition a [[position.Position]] is assigned to. An `Either`
+   *       is returned to allow a partitioner to assign a [[position.Position]]
+   *       to more than one partition.
    */
   type Partition[T, P <: Position] = (P, Option[SliceMap]) => Option[Either[T, List[T]]]
 }
 
 /**
- * Rich wrapper around a `TypedPipe[(T, (`[[position.Position]]`, `[[contents.Content]]`))]`.
+ * Rich wrapper around a `TypedPipe[(T, (`[[position.Position]]`,
+ * `[[contents.Content]]`))]`.
  *
- * @param data `TypedPipe[(T, (`[[position.Position]]`, `[[contents.Content]]`))]`.
+ * @param data `TypedPipe[(T, (`[[position.Position]]`,
+ *             `[[contents.Content]]`))]`.
  */
 class Partitions[T: Ordering, P <: Position](data: TypedPipe[(T, (P, Content))]) {
   // TODO: Add 'keys'/'hasKey'/'set'/'modify' methods?
@@ -59,18 +61,24 @@ class Partitions[T: Ordering, P <: Position](data: TypedPipe[(T, (P, Content))])
    * Persist a [[Partitions]] to disk.
    *
    * @param file        Name of the output file.
-   * @param separator   Separator to use between `T`, [[position.Position]] and [[contents.Content]].
+   * @param separator   Separator to use between `T`, [[position.Position]]
+   *                    and [[contents.Content]].
    * @param descriptive Indicates if the output should be descriptive.
    *
-   * @return A Scalding `TypedPipe[(T, (P, `[[contents.Content]]`))]` which is this [[Partitions]].
+   * @return A Scalding `TypedPipe[(T, (P, `[[contents.Content]]`))]` which
+   *         is this [[Partitions]].
    */
-  def persist(file: String, separator: String = "|", descriptive: Boolean = false)(implicit flow: FlowDef,
-    mode: Mode): TypedPipe[(T, (P, Content))] = {
+  def persist(file: String, separator: String = "|",
+    descriptive: Boolean = false)(implicit flow: FlowDef,
+      mode: Mode): TypedPipe[(T, (P, Content))] = {
     data
       .map {
         case (t, (p, c)) => descriptive match {
-          case true => t.toString + separator + p.toString + separator + c.toString
-          case false => t.toString + separator + p.toShortString(separator) + separator + c.toShortString(separator)
+          case true =>
+            t.toString + separator + p.toString + separator + c.toString
+          case false =>
+            t.toString + separator + p.toShortString(separator) + separator +
+              c.toShortString(separator)
         }
       }
       .toPipe('line)
@@ -81,7 +89,10 @@ class Partitions[T: Ordering, P <: Position](data: TypedPipe[(T, (P, Content))])
 }
 
 object Partitions {
-  /** Conversion from `TypedPipe[(T, (`[[position.Position]]`, `[[contents.Content]]`))]` to a [[Partitions]]. */
+  /**
+   * Conversion from `TypedPipe[(T, (`[[position.Position]]`,
+   * `[[contents.Content]]`))]` to a [[Partitions]].
+   */
   implicit def typedPipeTPositionContent[T: Ordering, P <: Position](data: TypedPipe[(T, (P, Content))]): Partitions[T, P] = {
     new Partitions(data)
   }

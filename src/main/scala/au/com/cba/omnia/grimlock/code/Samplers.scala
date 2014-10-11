@@ -31,7 +31,8 @@ object Samplers {
    *
    * @note This randomly samples ignoring the [[position.Position]].
    */
-  def randomSample[P <: Position](ratio: Double, rnd: Random = new Random()) = (pos: P) => {
+  def randomSample[P <: Position](ratio: Double,
+    rnd: Random = new Random()) = (pos: P) => {
     rnd.nextDouble() < ratio
   }
 
@@ -44,7 +45,8 @@ object Samplers {
    *
    * @return A sampling function for use in [[Matrix.sample]]
    */
-  def hashSample[P <: Position](dim: Dimension, ratio: Int, base: Int) = (pos: P) => {
+  def hashSample[P <: Position](dim: Dimension, ratio: Int,
+    base: Int) = (pos: P) => {
     math.abs(pos.get(dim).hashCode % base) < ratio
   }
 
@@ -58,9 +60,11 @@ object Samplers {
    *
    * @return A sampling function for use in [[Matrix.sampleWithValue]]
    */
-  def hashSampleToSize[P <: Position](dim: Dimension, size: Long, from: Int, state: String = "size") = (pos: P, sm: SliceMap) => {
+  def hashSampleToSize[P <: Position](dim: Dimension, size: Long, from: Int,
+    state: String = "size") = (pos: P, sm: SliceMap) => {
     sm(Position1D(from.toString))(Position1D(state)).value.asDouble match {
-      case Some(s) => math.abs(pos.get(dim).hashCode % math.round(s / size)) == 0
+      case Some(s) =>
+        math.abs(pos.get(dim).hashCode % math.round(s / size)) == 0
       case _ => false
     }
   }

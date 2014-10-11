@@ -21,7 +21,10 @@ import grimlock.utilities._
 
 /** Base trait for coordinates in a [[Position]]. */
 trait Coordinate {
-  /** The [[contents.encoding.Codex]] used to encode/decode this [[Coordinate]]. */
+  /**
+   * The [[contents.encoding.Codex]] used to encode/decode this
+   * [[Coordinate]].
+   */
   val codex: Codex with CoordinateCodex
 
   /**
@@ -49,7 +52,9 @@ trait Coordinate {
    *
    * @note This always applies [[Coordinate.toShortString]] before matching.
    */
-  def like(that: Regex): Boolean = that.pattern.matcher(this.toShortString).matches
+  def like(that: Regex): Boolean = {
+    that.pattern.matcher(this.toShortString).matches
+  }
 
   // Note: These next 4 methods implement comparison in a non-standard
   //       way when comparing two objects that can't be compared. In
@@ -61,7 +66,8 @@ trait Coordinate {
    *
    * @param that Coordinate to compare against.
    *
-   * @note If `that` is of a different type than `this`, then the result is always `false`.
+   * @note If `that` is of a different type than `this`, then the result is
+   *       always `false`.
    *
    * @see [[Coordinateable]]
    */
@@ -72,7 +78,8 @@ trait Coordinate {
    *
    * @param that Coordinate to compare against.
    *
-   * @note If `that` is of a different type than `this`, then the result is always `false`.
+   * @note If `that` is of a different type than `this`, then the result is
+   *       always `false`.
    *
    * @see [[Coordinateable]]
    */
@@ -83,7 +90,8 @@ trait Coordinate {
    *
    * @param that Coordinate to compare against.
    *
-   * @note If `that` is of a different type than `this`, then the result is always `false`.
+   * @note If `that` is of a different type than `this`, then the result is
+   *       always `false`.
    *
    * @see [[Coordinateable]]
    */
@@ -94,7 +102,8 @@ trait Coordinate {
    *
    * @param that Coordinate to compare against.
    *
-   * @note If `that` is of a different type than `this`, then the result is always `false`.
+   * @note If `that` is of a different type than `this`, then the result is
+   *       always `false`.
    *
    * @see [[Coordinateable]]
    */
@@ -117,7 +126,8 @@ trait Coordinate {
       case Some(0) => 0
       case Some(x) if (x > 0) => 1
       case Some(x) if (x < 0) => -1
-      case _ => throw new Exception("unable to compare different coordinate types.")
+      case _ =>
+        throw new Exception("unable to compare different coordinate types.")
     }
   }
 
@@ -132,7 +142,8 @@ trait Coordinate {
   def toShortString: String = codex.toShortString(this)
 
   private def eval[T: Coordinateable](that: T, op: CompareResult): Boolean = {
-    CompareResult.evaluate(codex.compare(this, implicitly[Coordinateable[T]].convert(that)), op)
+    CompareResult.evaluate(codex.compare(this,
+      implicitly[Coordinateable[T]].convert(that)), op)
   }
 }
 
@@ -147,9 +158,11 @@ object Coordinate {
  * [[Coordinate]] for `java.util.Date` values.
  *
  * @param value `java.util.Date` value of the [[Coordinate]].
- * @param codex The [[contents.encoding.Codex]] used for encoding/decoding `value`.
+ * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
+ *              `value`.
  */
-case class DateCoordinate(value: java.util.Date, codex: Codex with CoordinateCodex) extends Coordinate {
+case class DateCoordinate(value: java.util.Date,
+  codex: Codex with CoordinateCodex) extends Coordinate {
   override def asDate = Some(value)
 }
 
@@ -157,9 +170,11 @@ case class DateCoordinate(value: java.util.Date, codex: Codex with CoordinateCod
  * [[Coordinate]] for `String` values.
  *
  * @param value `String` value of the [[Coordinate]].
- * @param codex The [[contents.encoding.Codex]] used for encoding/decoding `value`.
+ * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
+ *        `value`.
  */
-case class StringCoordinate(value: String, codex: Codex with CoordinateCodex) extends Coordinate {
+case class StringCoordinate(value: String,
+  codex: Codex with CoordinateCodex) extends Coordinate {
   override def asString = Some(value)
 }
 
@@ -167,9 +182,11 @@ case class StringCoordinate(value: String, codex: Codex with CoordinateCodex) ex
  * [[Coordinate]] for `Long` values.
  *
  * @param value `Long` value of the [[Coordinate]].
- * @param codex The [[contents.encoding.Codex]] used for encoding/decoding `value`.
+ * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
+ *              `value`.
  */
-case class LongCoordinate(value: Long, codex: Codex with CoordinateCodex) extends Coordinate {
+case class LongCoordinate(value: Long,
+  codex: Codex with CoordinateCodex) extends Coordinate {
   override def asLong = Some(value)
 }
 
@@ -185,17 +202,26 @@ trait Coordinateable[T] {
 
 /** Companion object for the [[Coordinateable]] type class. */
 object Coordinateable {
-  /** Converts a [[Coordinate]] to a [[Coordinate]]; that is, it's a pass through. */
-  implicit def CoordinateCoordinateable[T <: Coordinate]: Coordinateable[T] = new Coordinateable[T] {
-    def convert(t: T): Coordinate = t
+  /**
+   * Converts a [[Coordinate]] to a [[Coordinate]]; that is, it's a pass
+   * through.
+   */
+  implicit def CoordinateCoordinateable[T <: Coordinate]: Coordinateable[T] = {
+    new Coordinateable[T] {
+      def convert(t: T): Coordinate = t
+    }
   }
   /** Converts a `String` to a [[Coordinate]]. */
-  implicit def StringCoordinateable: Coordinateable[String] = new Coordinateable[String] {
-    def convert(t: String): Coordinate = StringCoordinate(t, StringCodex)
+  implicit def StringCoordinateable: Coordinateable[String] = {
+    new Coordinateable[String] {
+      def convert(t: String): Coordinate = StringCoordinate(t, StringCodex)
+    }
   }
   /** Converts a `Long` to a [[Coordinate]]. */
-  implicit def LongCoordinateable: Coordinateable[Long] = new Coordinateable[Long] {
-    def convert(t: Long): Coordinate = LongCoordinate(t, LongCodex)
+  implicit def LongCoordinateable: Coordinateable[Long] = {
+    new Coordinateable[Long] {
+      def convert(t: Long): Coordinate = LongCoordinate(t, LongCodex)
+    }
   }
 }
 
