@@ -14,13 +14,13 @@
 
 package grimlock
 
-import scala.util.matching.Regex
-
+import cascading.flow.FlowDef
 import com.twitter.scalding._
 import com.twitter.scalding.TDsl._, Dsl._
-import cascading.flow.FlowDef
 
 import grimlock.position._
+
+import scala.util.matching.Regex
 
 /**
  * Rich wrapper around a `TypedPipe[(`[[position.Position]]`, Long)]`.

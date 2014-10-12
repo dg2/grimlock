@@ -15,9 +15,8 @@
 package grimlock.transform
 
 import grimlock.contents._
-import grimlock.Matrix._
 import grimlock.position._
-import grimlock.utilities.{Miscellaneous => Misc}
+import grimlock.utilities.{ Miscellaneous => Misc }
 
 // TODO: Add the ability to compose individual transformers. For example,
 //       first clamp a variable, then normalise. Perhaps use an andThen
@@ -87,6 +86,18 @@ trait PresentWithValue { self: Transformer =>
    */
   def present[P <: Position with ModifyablePosition](pos: P, con: Content,
     ext: V): Option[Either[(P#S, Content), List[(P#S, Content)]]]
+}
+
+/**
+ * Convenience trait for [[Transformer]]s that present with or without using a
+ * user supplied value.
+ */
+trait PresentAndWithValue extends Present with PresentWithValue {
+  self: Transformer =>
+  type V = Any
+
+  def present[P <: Position with ModifyablePosition](pos: P, con: Content,
+    ext: V) = present(pos, con)
 }
 
 /**

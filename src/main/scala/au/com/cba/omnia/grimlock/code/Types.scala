@@ -14,9 +14,9 @@
 
 package grimlock
 
+import cascading.flow.FlowDef
 import com.twitter.scalding._
 import com.twitter.scalding.TDsl._, Dsl._
-import cascading.flow.FlowDef
 
 import grimlock.contents.variable._
 import grimlock.position._

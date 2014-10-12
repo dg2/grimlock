@@ -14,16 +14,13 @@
 
 package grimlock
 
+import cascading.flow.FlowDef
 import com.twitter.scalding._
 import com.twitter.scalding.TDsl._, Dsl._
 import com.twitter.scalding.typed.IterablePipe
-import cascading.flow.FlowDef
 
 import grimlock.contents._
-import grimlock.contents.Content._
 import grimlock.contents.encoding._
-import grimlock.contents.encoding.Codex._
-import grimlock.contents.events._
 import grimlock.contents.metadata._
 import grimlock.contents.metadata.Dictionary._
 import grimlock.contents.variable._
@@ -31,10 +28,9 @@ import grimlock.derive._
 import grimlock.Matrix._
 import grimlock.partition._
 import grimlock.position._
-import grimlock.position.coordinate._
 import grimlock.reduce._
 import grimlock.transform._
-import grimlock.utilities.{=!=, Miscellaneous => Misc}
+import grimlock.utilities.{ =!=, Miscellaneous => Misc }
 
 /**
  * Rich wrapper around a `TypedPipe[(`[[position.Position]]`,
@@ -382,10 +378,9 @@ trait Matrix[P <: Position] {
    *
    * @see [[partition.Partitioner]]
    */
-  def partition[T: Ordering](
-    partitioner: Partitioner.Partition[T, P]): TypedPipe[(T, (P, Content))] = {
+  def partition[S: Ordering](partitioner: Partitioner with Assign { type T = S }): TypedPipe[(S, (P, Content))] = {
     data.flatMap {
-      case (p, c) => Misc.mapFlatten(partitioner(p, None), (p, c))
+      case (p, c) => Misc.mapFlatten(partitioner.assign(p), (p, c))
     }
   }
   /**
@@ -401,10 +396,12 @@ trait Matrix[P <: Position] {
    *
    * @see [[partition.Partitioner]]
    */
-  def partitionWithValue[T: Ordering](partitioner: Partitioner.Partition[T, P],
-    value: ValuePipe[SliceMap]): TypedPipe[(T, (P, Content))] = {
+  def partitionWithValue[S: Ordering, W](
+    partitioner: Partitioner with AssignWithValue { type V >: W; type T = S },
+    value: ValuePipe[W]): TypedPipe[(S, (P, Content))] = {
     data.flatMapWithValue(value) {
-      case ((p, c), vo) => Misc.mapFlatten(partitioner(p, vo), (p, c))
+      case ((p, c), vo) => Misc.mapFlatten(
+        partitioner.assign(p, vo.get), (p, c))
     }
   }
 
@@ -1046,14 +1043,6 @@ object Matrix {
     data: TypedPipe[(Position5D, Content)]): Matrix5D = {
     new Matrix5D(data)
   }
-
-  /**
-   * Type for in-memory representation of a [[Matrix]]
-   *
-   * @note It is a `Map` of `Map` so the [[Matrix]] can be keyed for easy
-   *       lookup of [[contents.Content]].
-   */
-  type SliceMap = Map[Position, Map[Position, Content]]
 
   /**
    * Reduce two cells preserving the cell with maximal value for the

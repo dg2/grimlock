@@ -14,25 +14,67 @@
 
 package grimlock.partition
 
+import cascading.flow.FlowDef
 import com.twitter.scalding._
 import com.twitter.scalding.TDsl._, Dsl._
-import cascading.flow.FlowDef
 
 import grimlock.contents._
-import grimlock.Matrix._
 import grimlock.position._
 
-/** Defines partitioning operations. */
-object Partitioner {
+/** Base trait for partitioning operations. */
+trait Partitioner {
+  type T
+}
+
+/** Base trait for partitioners. */
+trait Assign { self: Partitioner =>
   /**
-   * Type for partitioning a [[Matrix]].
+   * Assign the cell to a partition.
+   *
+   * @param pos The [[position.Position]] of the content.
+   *
+   * @return Optional of either a `T` or a `List[T]`, where the instances
+   *         of `T` identify the partitions.
    *
    * @note An `Option` is returned to allow partitioners to be selective in
    *       which partition a [[position.Position]] is assigned to. An `Either`
    *       is returned to allow a partitioner to assign a [[position.Position]]
    *       to more than one partition.
    */
-  type Partition[T, P <: Position] = (P, Option[SliceMap]) => Option[Either[T, List[T]]]
+  def assign[P <: Position](pos: P): Option[Either[T, List[T]]]
+}
+
+/** Base trait for partitioners that use a user supplied value. */
+trait AssignWithValue { self: Partitioner =>
+  /** Type of the external value. */
+  type V
+
+  /**
+   * Assign the cell to a partition using a user supplied value.
+   *
+   * @param pos The [[position.Position]] of the content.
+   * @param ext The user supplied value.
+   *
+   * @return Optional of either a `T` or a `List[T]`, where the instances
+   *         of `T` identify the partitions.
+   *
+   * @note An `Option` is returned to allow partitioners to be selective in
+   *       which partition a [[position.Position]] is assigned to. An `Either`
+   *       is returned to allow a partitioner to assign a [[position.Position]]
+   *       to more than one partition.
+   */
+  def assign[P <: Position](pos: P, ext: V): Option[Either[T, List[T]]]
+}
+
+/**
+ * Convenience trait for [[Partitioner]]s that assigns with or without using a
+ * user supplied value.
+ */
+trait AssignAndWithValue extends Assign with AssignWithValue {
+  self: Partitioner =>
+  type V = Any
+
+  def assign[P <: Position](pos: P, ext: V) = assign(pos)
 }
 
 /**

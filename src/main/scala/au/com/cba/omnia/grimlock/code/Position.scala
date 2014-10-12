@@ -14,10 +14,10 @@
 
 package grimlock.position
 
+import cascading.flow.FlowDef
 import com.twitter.scalding._
 import com.twitter.scalding.TDsl._, Dsl._
 import com.twitter.scalding.typed.IterablePipe
-import cascading.flow.FlowDef
 
 import grimlock._
 import grimlock.contents._
@@ -321,7 +321,7 @@ object Position2D {
  */
 case class Position3D(first: Coordinate, second: Coordinate,
   third: Coordinate) extends Position with ModifyablePosition
-    with ReduceablePosition with ExpandablePosition {
+  with ReduceablePosition with ExpandablePosition {
   type L = Position2D
   type S = Position3D
   type M = Position4D
@@ -379,7 +379,7 @@ object Position3D {
  */
 case class Position4D(first: Coordinate, second: Coordinate, third: Coordinate,
   fourth: Coordinate) extends Position with ModifyablePosition
-    with ReduceablePosition with ExpandablePosition {
+  with ReduceablePosition with ExpandablePosition {
   type L = Position3D
   type S = Position4D
   type M = Position5D
@@ -441,7 +441,7 @@ object Position4D {
  */
 case class Position5D(first: Coordinate, second: Coordinate, third: Coordinate,
   fourth: Coordinate, fifth: Coordinate) extends Position
-    with ModifyablePosition with ReduceablePosition {
+  with ModifyablePosition with ReduceablePosition {
   type L = Position4D
   type S = Position5D
 
@@ -643,7 +643,7 @@ object PositionPipeable {
   /** Converts a `List[`[[Positionable]]`]` to a `TypedPipe[`[[Position]]`]`. */
   implicit def ListPositionablePositionPipeable[T, P <: Position](
     implicit ev: Positionable[T, P], flow: FlowDef,
-      mode: Mode): PositionPipeable[List[T], P] = {
+    mode: Mode): PositionPipeable[List[T], P] = {
     new PositionPipeable[List[T], P] {
       def convert(t: List[T]): TypedPipe[P] = {
         new IterablePipe(t.map(ev.convert(_)), flow, mode)
@@ -653,7 +653,7 @@ object PositionPipeable {
   /** Converts a [[Positionable]] to a `TypedPipe[`[[Position]]`]`. */
   implicit def PositionablePositionPipeable[T, P <: Position](
     implicit ev: Positionable[T, P], flow: FlowDef,
-      mode: Mode): PositionPipeable[T, P] = {
+    mode: Mode): PositionPipeable[T, P] = {
     new PositionPipeable[T, P] {
       def convert(t: T): TypedPipe[P] = {
         new IterablePipe(List(ev.convert(t)), flow, mode)

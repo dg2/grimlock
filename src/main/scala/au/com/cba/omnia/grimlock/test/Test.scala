@@ -33,12 +33,11 @@ import grimlock.Names._
 import grimlock.NLP._
 import grimlock.partition._
 import grimlock.partition.Partitions._
-import grimlock.partition.Partitioners._
 import grimlock.position._
 import grimlock.position.coordinate._
 import grimlock.position.PositionPipe._
 import grimlock.reduce._
-import grimlock.sample.Samplers._
+import grimlock.sample._
 import grimlock.transform._
 import grimlock.Types._
 import grimlock.utilities._
@@ -251,36 +250,43 @@ class Test9(args : Args) extends Job(args) {
 
   val data = TestReader.read4TupleDataAddDate(args("input"))
 
-  def stringPartitioner(dim: Dimension): Partitioner.Partition[String, Position2D] =
-    (pos: Position, smo: Option[SliceMap]) => {
+  case class StringPartitioner(dim: Dimension) extends Partitioner with Assign {
+    type T = String
+
+    def assign[P <: Position](pos: P): Option[Either[T, List[T]]] = {
       Some(Right(List(pos.get(dim) match {
         case StringCoordinate("fid:A", _) => "training"
         case StringCoordinate("fid:B", _) => "testing"
       }, "scoring")))
     }
+  }
 
   val prt1 = data
     .slice(Over(Second), List("fid:A", "fid:B"), true)
     .slice(Over(First), List("iid:0221707", "iid:0364354"), true)
     .squash(Third, preservingMaxPosition)
-    .partition(stringPartitioner(Second))
+    .partition(StringPartitioner(Second))
 
   prt1
     .persist("./tmp/prt1.out", descriptive=true)
 
-  def intTuplePartitioner(dim: Dimension): Partitioner.Partition[(Int, Int, Int), Position2D] =
-    (pos: Position, smo: Option[SliceMap]) => {
+  case class IntTuplePartitioner(dim: Dimension) extends Partitioner
+    with Assign {
+    type T = (Int, Int, Int)
+
+    def assign[P <: Position](pos: P): Option[Either[T, List[T]]] = {
       Some(Right(List(pos.get(dim) match {
         case StringCoordinate("fid:A", _) => (1, 0, 0)
         case StringCoordinate("fid:B", _) => (0, 1, 0)
       }, (0, 0, 1))))
     }
+  }
 
   data
     .slice(Over(Second), List("fid:A", "fid:B"), true)
     .slice(Over(First), List("iid:0221707", "iid:0364354"), true)
     .squash(Third, preservingMaxPosition)
-    .partition(intTuplePartitioner(Second))
+    .partition(IntTuplePartitioner(Second))
     .persist("./tmp/prt2.out", descriptive=true)
 
   prt1
@@ -490,14 +496,19 @@ class Test19(args : Args) extends Job(args) {
     .slice(Over(Second), List("fid:A", "fid:B", "fid:C", "fid:D", "fid:E", "fid:F", "fid:G"), true)
     .squash(Third, preservingMaxPosition)
 
-  def CustomPartition[T, P <: Position](dim: Dimension, left: T, right: T): Partitioner.Partition[T, P] =
-    (pos: P, smo: Option[SliceMap]) => {
+  case class CustomPartition[S: Ordering](dim: Dimension, left: S, right: S)
+    extends Partitioner with Assign {
+    type T = S
+
+    val bhs = BinaryHashSplit(dim, 7, left, right, base=10)
+    def assign[P <: Position](pos: P): Option[Either[T, List[T]]] = {
       if (pos.get(dim).toShortString == "iid:0364354") {
         Some(Left(right))
       } else {
-        BinaryHashSplit(dim, 7, left, right, base=10)(pos, smo)
+        bhs.assign(pos)
       }
     }
+  }
 
   val parts = raw
     .partition(CustomPartition(First, "train", "test"))
@@ -616,26 +627,5 @@ class Test24(args: Args) extends Job(args) {
   data2
     .correlation(Over(Second))
     .persist("./tmp/pws3.out")
-}
-
-class TestX(args : Args) extends Job(args) {
-
-  val data = read2D("numericInputfile.txt")
-
-  val size = data.size(First).persist("./tmp/x0.out").toMap(Over(First))
-
-  data.transformWithValue(RatioX(First, First), size).persist("./tmp/x1.out")
-  data.transformWithValue(Indicator(First), size).persist("./tmp/x2.out")
-  data.transformWithValue(List(RatioX(First, First), Indicator(Second)), size).persist("./tmp/x3.out")
-
-  def getList()(implicit flow: FlowDef, mode: Mode): ValuePipe[List[(Position1D, Content)]] = {
-    new IterablePipe(List((Position1D(First.toString), Content(DiscreteSchema[Codex.LongCodex], 2))), flow, mode)
-      .map(List(_))
-      .sum
-  }
-
-  val size3 = getList()
-
-  data.transformWithValue(List(RatioZ(First, First), Indicator(Second)), size3).persist("./tmp/x5.out")
 }
 

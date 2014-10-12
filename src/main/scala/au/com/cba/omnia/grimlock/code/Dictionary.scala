@@ -14,8 +14,6 @@
 
 package grimlock.contents.metadata
 
-import grimlock.contents.variable._
-
 object Dictionary {
   /** Placeholder type of a dictionary (map of schema). */
   type Dictionary = Map[String, Schema]

@@ -14,13 +14,6 @@
 
 package grimlock.contents.events
 
-import scala.util.matching.Regex
-
-import grimlock.contents._
-import grimlock.contents.encoding._
-import grimlock.contents.variable._
-import grimlock.position._
-
 /** Base trait for representing events. */
 trait Event
 

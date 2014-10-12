@@ -14,10 +14,14 @@
 
 package grimlock.position.coordinate
 
-import scala.util.matching.Regex
-
 import grimlock.contents.encoding._
 import grimlock.utilities._
+
+import java.util.Date
+
+import scala.util.matching.Regex
+
+// TODO: Can Coordinate be replaced by Value?
 
 /** Base trait for coordinates in a [[Position]]. */
 trait Coordinate {
@@ -132,7 +136,7 @@ trait Coordinate {
   }
 
   /** Return value as `java.util.Date`. */
-  def asDate: Option[java.util.Date] = None
+  def asDate: Option[Date] = None
   /** Return value as `String`. */
   def asString: Option[String] = None
   /** Return value as `Long`. */
@@ -161,8 +165,8 @@ object Coordinate {
  * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
  *              `value`.
  */
-case class DateCoordinate(value: java.util.Date,
-  codex: Codex with CoordinateCodex) extends Coordinate {
+case class DateCoordinate(value: Date, codex: Codex with CoordinateCodex)
+  extends Coordinate {
   override def asDate = Some(value)
 }
 
@@ -173,8 +177,8 @@ case class DateCoordinate(value: java.util.Date,
  * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
  *        `value`.
  */
-case class StringCoordinate(value: String,
-  codex: Codex with CoordinateCodex) extends Coordinate {
+case class StringCoordinate(value: String, codex: Codex with CoordinateCodex)
+  extends Coordinate {
   override def asString = Some(value)
 }
 
@@ -185,8 +189,8 @@ case class StringCoordinate(value: String,
  * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
  *              `value`.
  */
-case class LongCoordinate(value: Long,
-  codex: Codex with CoordinateCodex) extends Coordinate {
+case class LongCoordinate(value: Long, codex: Codex with CoordinateCodex)
+  extends Coordinate {
   override def asLong = Some(value)
 }
 

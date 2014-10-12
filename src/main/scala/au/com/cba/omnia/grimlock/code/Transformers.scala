@@ -16,12 +16,8 @@ package grimlock.transform
 
 import grimlock.contents._
 import grimlock.contents.encoding._
-import grimlock.contents.events._
 import grimlock.contents.metadata._
-import grimlock.contents.variable._
 import grimlock.contents.variable.Type._
-import grimlock.Matrix._
-import grimlock.NLP._
 import grimlock.position._
 import grimlock.position.coordinate._
 
@@ -42,22 +38,10 @@ trait AsDouble {
 
   protected def returnSingle[P <: Position with ModifyablePosition](pos: P,
     dim: Dimension, name: String,
-      value: Double): Option[Either[(P#S, Content), List[(P#S, Content)]]] = {
+    value: Double): Option[Either[(P#S, Content), List[(P#S, Content)]]] = {
     Some(Left((pos.set(dim, name),
       Content(ContinuousSchema[Codex.DoubleCodex](), value))))
   }
-}
-
-/**
- * Convenience trait for [[Transformer]]s that present with or without using a
- * user supplied value.
- */
-trait PresentAndWithValue extends Present with PresentWithValue {
-  self: Transformer =>
-
-  type V = Any
-  def present[P <: Position with ModifyablePosition](pos: P, con: Content,
-    ext: V) = present(pos, con)
 }
 
 /**
@@ -66,7 +50,6 @@ trait PresentAndWithValue extends Present with PresentWithValue {
  */
 trait PresentAsDoubleWithValue extends PresentWithValue with AsDouble {
   self: Transformer =>
-
   type V = Map[Position1D, Map[Position1D, Content]]
 }
 
@@ -272,7 +255,7 @@ case class Clamp[T <: Transformer with PresentWithValue](dim: Dimension,
 case class Idf(from: Dimension, state: String = "size", name: String = "idf",
   log: (Double) => Double = math.log, add: Int = 1,
   lower: Long = Long.MinValue, upper: Long = Long.MaxValue) extends Transformer
-    with PresentExpandedAsDoubleWithValue {
+  with PresentExpandedAsDoubleWithValue {
   def present[P <: Position with ExpandablePosition](pos: P, con: Content,
     ext: V) = {
     (con.value.asDouble, getAsDouble(con, ext, from.toString, state)) match {
@@ -329,7 +312,7 @@ case class BooleanTf(dim: Dimension, suffix: String = "") extends Transformer
  */
 case class LogarithmicTf(dim: Dimension, suffix: String = "",
   log: (Double) => Double = math.log) extends Transformer
-    with PresentAsDoubleAndWithValue {
+  with PresentAsDoubleAndWithValue {
   def present[P <: Position with ModifyablePosition](pos: P, con: Content) = {
     (con.schema.kind.isSpecialisationOf(Numerical), con.value.asDouble) match {
       case (true, Some(tf)) =>
@@ -445,43 +428,12 @@ case class Divide(dim: Dimension, state: String, suffix: String = "",
 
 case class Ratio(dim: Dimension, from: Dimension, state: String = "size",
   suffix: String = "", inverse: Boolean = false) extends Transformer
-    with PresentAsDoubleWithValue {
+  with PresentAsDoubleWithValue {
   def present[P <: Position with ModifyablePosition](pos: P, con: Content,
     ext: V) = {
     (con.value.asDouble, getAsDouble(con, ext, from.toString, state)) match {
       case (Some(l), Some(r)) => returnSingle(pos, dim,
         pos.get(dim).toShortString + suffix, if (inverse) r / l else l / r)
-      case _ => None
-    }
-  }
-}
-
-case class RatioX(dim: Dimension, from: Dimension, suffix: String = "",
-  inverse: Boolean = false) extends Transformer with PresentWithValue {
-  type V = Map[Position1D, Content]
-  def present[P <: Position with ModifyablePosition](pos: P, con: Content,
-    m: V) = {
-    (con.value.asDouble, m(Position1D(from.toString)).value.asDouble) match {
-      case (Some(l), Some(r)) => Some(Left((pos.set(dim,
-        pos.get(dim).toShortString + suffix),
-        Content(ContinuousSchema[Codex.DoubleCodex](),
-          if (inverse) r / l else l / r))))
-      case _ => None
-    }
-  }
-}
-
-case class RatioZ(dim: Dimension, from: Dimension, suffix: String = "",
-  inverse: Boolean = false) extends Transformer with PresentWithValue {
-  type V = List[(Position1D, Content)]
-  def present[P <: Position with ModifyablePosition](pos: P, con: Content,
-    m: V) = {
-    (con.value.asDouble, m(m.map(_._1).indexOf(
-      Position1D(from.toString)))._2.value.asDouble) match {
-      case (Some(l), Some(r)) => Some(Left((pos.set(dim,
-        pos.get(dim).toShortString + suffix),
-        Content(ContinuousSchema[Codex.DoubleCodex](),
-          if (inverse) r / l else l / r))))
       case _ => None
     }
   }

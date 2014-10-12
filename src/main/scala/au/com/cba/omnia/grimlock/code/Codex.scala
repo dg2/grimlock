@@ -14,11 +14,11 @@
 
 package grimlock.contents.encoding
 
-import java.text.SimpleDateFormat
-
 import grimlock.contents.events._
 import grimlock.contents.variable._
 import grimlock.position.coordinate._
+
+import java.text.SimpleDateFormat
 
 /** Base trait for encoding/decoding basic data types. */
 trait Codex {

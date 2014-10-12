@@ -14,12 +14,14 @@
 
 package grimlock.contents.variable
 
-import scala.util.matching.Regex
-
 import grimlock.contents.encoding._
+import grimlock.contents.encoding.Codex._
 import grimlock.contents.events._
-import grimlock.contents.metadata._
 import grimlock.utilities._
+
+import java.util.Date
+
+import scala.util.matching.Regex
 
 /**
  * Base class for variable types.
@@ -165,7 +167,7 @@ trait Value {
   def geq[T: Valueable](that: T): Boolean = eval(that, GreaterEqual)
 
   /** Return value as `java.util.Date`. */
-  def asDate: Option[java.util.Date] = None
+  def asDate: Option[Date] = None
   /** Return value as `String`. */
   def asString: Option[String] = None
   /** Return value as `Double`. */
@@ -193,8 +195,7 @@ trait Value {
  * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
  *              `value`.
  */
-case class DateValue(value: java.util.Date, codex: DateAndTimeCodex)
-  extends Value {
+case class DateValue(value: Date, codex: DateAndTimeCodex) extends Value {
   override def asDate = Some(value)
 }
 
@@ -205,8 +206,7 @@ case class DateValue(value: java.util.Date, codex: DateAndTimeCodex)
  * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
  *              `value`.
  */
-case class StringValue(value: String, codex: Codex with ValueCodex)
-  extends Value {
+case class StringValue(value: String, codex: StringCodex) extends Value {
   override def asString = Some(value.toString)
 }
 
@@ -217,8 +217,7 @@ case class StringValue(value: String, codex: Codex with ValueCodex)
  * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
  *              `value`.
  */
-case class DoubleValue(value: Double, codex: Codex with ValueCodex)
-  extends Value {
+case class DoubleValue(value: Double, codex: DoubleCodex) extends Value {
   override def asDouble = Some(value)
 }
 
@@ -229,8 +228,7 @@ case class DoubleValue(value: Double, codex: Codex with ValueCodex)
  * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
  *              `value`.
  */
-case class LongValue(value: Long, codex: Codex with ValueCodex)
-  extends Value {
+case class LongValue(value: Long, codex: LongCodex) extends Value {
   override def asDouble = Some(value)
   override def asLong = Some(value)
 }
@@ -242,8 +240,7 @@ case class LongValue(value: Long, codex: Codex with ValueCodex)
  * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
  *              `value`.
  */
-case class BooleanValue(value: Boolean, codex: Codex with ValueCodex)
-  extends Value {
+case class BooleanValue(value: Boolean, codex: BooleanCodex) extends Value {
   override def asBoolean = Some(value)
 }
 

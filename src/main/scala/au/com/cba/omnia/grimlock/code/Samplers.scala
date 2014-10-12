@@ -14,55 +14,50 @@
 
 package grimlock.sample
 
-import scala.util._
-
-import grimlock.Matrix._
+import grimlock.contents._
 import grimlock.position._
 
-/** Implements default samplers. */
-object Samplers {
-  /**
-   * Randomly sample.
-   *
-   * @param ratio The sampling ratio.
-   * @param rnd   The random number generator.
-   *
-   * @return A sampling function for use in [[Matrix.sample]]
-   *
-   * @note This randomly samples ignoring the [[position.Position]].
-   */
-  def randomSample[P <: Position](ratio: Double,
-    rnd: Random = new Random()) = (pos: P) => {
-    rnd.nextDouble() < ratio
-  }
+import scala.util.Random
 
-  /**
-   * Sample based on the hash code of a dimension.
-   *
-   * @param dim   The dimension to sample from.
-   * @param ratio The sample ratio (relative to `base`).
-   * @param base  The base of the sampling ratio.
-   *
-   * @return A sampling function for use in [[Matrix.sample]]
-   */
-  def hashSample[P <: Position](dim: Dimension, ratio: Int,
-    base: Int) = (pos: P) => {
+/**
+ * Randomly sample.
+ *
+ * @param ratio The sampling ratio.
+ * @param rnd   The random number generator.
+ *
+ * @note This randomly samples ignoring the [[position.Position]].
+ */
+case class RandomSample(ratio: Double, rnd: Random = new Random())
+  extends Sampler with SelectAndWithValue {
+  def select[P <: Position](pos: P): Boolean = rnd.nextDouble() < ratio
+}
+
+/**
+ * Sample based on the hash code of a dimension.
+ *
+ * @param dim   The dimension to sample from.
+ * @param ratio The sample ratio (relative to `base`).
+ * @param base  The base of the sampling ratio.
+ */
+case class HashSample(dim: Dimension, ratio: Int, base: Int) extends Sampler
+  with SelectAndWithValue {
+  def select[P <: Position](pos: P): Boolean = {
     math.abs(pos.get(dim).hashCode % base) < ratio
   }
+}
 
-  /**
-   * Sample based on the hash code of a dimension.
-   *
-   * @param dim   The dimension to sample from.
-   * @param size  The size to sample to.
-   * @param from  The index of the dimension in a [[Matrix.SliceMap]].
-   * @param state The name of the matrix size in a [[Matrix.SliceMap]].
-   *
-   * @return A sampling function for use in [[Matrix.sampleWithValue]]
-   */
-  def hashSampleToSize[P <: Position](dim: Dimension, size: Long, from: Int,
-    state: String = "size") = (pos: P, sm: SliceMap) => {
-    sm(Position1D(from.toString))(Position1D(state)).value.asDouble match {
+/**
+ * Sample based on the hash code of a dimension.
+ *
+ * @param dim  The dimension to sample from.
+ * @param size The size to sample to.
+ */
+case class HashSampleToSize(dim: Dimension, size: Long) extends Sampler
+  with SelectWithValue {
+  type V = Map[Position1D, Content]
+
+  def select[P <: Position](pos: P, ext: V): Boolean = {
+    ext(Position1D(dim.toString)).value.asDouble match {
       case Some(s) =>
         math.abs(pos.get(dim).hashCode % math.round(s / size)) == 0
       case _ => false

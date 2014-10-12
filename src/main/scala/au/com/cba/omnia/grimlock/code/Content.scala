@@ -14,12 +14,11 @@
 
 package grimlock.contents
 
+import cascading.flow.FlowDef
 import com.twitter.scalding._
 import com.twitter.scalding.TDsl._, Dsl._
-import cascading.flow.FlowDef
 
 import grimlock.contents.encoding._
-import grimlock.contents.events._
 import grimlock.contents.metadata._
 import grimlock.contents.variable._
 

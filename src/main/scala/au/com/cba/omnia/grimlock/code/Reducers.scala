@@ -18,46 +18,8 @@ import grimlock._
 import grimlock.contents._
 import grimlock.contents.encoding._
 import grimlock.contents.metadata._
-import grimlock.contents.variable._
 import grimlock.contents.variable.Type._
-import grimlock.Matrix._
 import grimlock.position._
-
-/**
- * Convenience trait for [[Reducer]]s that can prepare with or without a user
- * supplied value.
- */
-trait PrepareAndWithValue extends Prepare with PrepareWithValue {
-  self: Reducer =>
-
-  type V = Any
-
-  def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P,
-    con: Content, ext: V): T = prepare(slc, pos, con)
-}
-
-/**
- * Convenience trait for [[Reducer]]s that present a value both as
- * [[PresentSingle]] and [[PresentMultiple]].
- */
-trait PresentSingleAndMultiple extends PresentSingle with PresentMultiple {
-  self: Reducer =>
-
-  /**
-   * [[position.coordinate.Coordinate]] name to use when presenting the
-   * value as [[PresentMultiple]].
-   */
-  val name: String
-
-  def presentSingle[P <: Position](pos: P,
-    t: T): Option[(P, Content)] = content(t).map { case c => (pos, c) }
-  def presentMultiple[P <: Position with ExpandablePosition](pos: P,
-    t: T): Option[Either[(P#M, Content), List[(P#M, Content)]]] = {
-    content(t).map { case c => Left((pos.append(name), c)) }
-  }
-
-  protected def content(t: T): Option[Content]
-}
 
 /**
  * Count reductions.
@@ -96,7 +58,7 @@ case class Moments(strict: Boolean = true, nan: Boolean = false,
   only: List[Int] = List(1, 2, 3, 4),
   names: List[String] = List("mean", "std", "skewness", "kurtosis"))
   extends Reducer with PrepareAndWithValue with PresentSingle
-    with PresentMultiple {
+  with PresentMultiple {
   type T = com.twitter.algebird.Moments
 
   def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P,
@@ -217,7 +179,7 @@ case class Sum(strict: Boolean = true, nan: Boolean = false,
 case class Histogram(all: Boolean = false, meta: Boolean = true,
   names: List[String] = List("num.cat", "entropy", "freq.ratio"),
   prefix: Option[String] = Some("%s="), separator: String = "")
-    extends Reducer with PrepareAndWithValue with PresentMultiple {
+  extends Reducer with PrepareAndWithValue with PresentMultiple {
   type T = Option[Map[String, Long]]
 
   def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P,
@@ -289,7 +251,7 @@ case class Histogram(all: Boolean = false, meta: Boolean = true,
 // TODO: Test this
 case class ThresholdCount(strict: Boolean = true, nan: Boolean = false,
   threshold: Double = 0, names: List[String] = List("leq.count", "gtr.count"))
-    extends Reducer with PrepareAndWithValue with PresentMultiple {
+  extends Reducer with PrepareAndWithValue with PresentMultiple {
   type T = (Long, Long) // (leq, gtr)
 
   def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P,
@@ -391,7 +353,7 @@ case class DistinctCount(name: String = "distinct.count") extends Reducer
 // TODO: Test this
 case class Percentiles(percentiles: Int,
   name: Option[String] = Some("percentile.%d")) extends Reducer
-    with PrepareAndWithValue with PresentMultiple {
+  with PrepareAndWithValue with PresentMultiple {
   type T = Map[Double, Long]
 
   def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P,

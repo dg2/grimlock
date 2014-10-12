@@ -236,7 +236,7 @@ trait CategoricalSchema[T] extends Schema {
  */
 case class NominalSchema[C <: Codex with ValueCodex] private (
   domain: Option[List[C#T]])(implicit val codex: C)
-    extends CategoricalSchema[C#T] {
+  extends CategoricalSchema[C#T] {
   val kind = Type.Nominal
 
   override def toString(): String = {
@@ -273,7 +273,7 @@ object NominalSchema {
  */
 case class OrdinalSchema[C <: Codex with ValueCodex] private (
   domain: Option[List[C#T]])(implicit val codex: C)
-    extends CategoricalSchema[C#T] {
+  extends CategoricalSchema[C#T] {
   val kind = Type.Ordinal
 
   override def toString(): String = {

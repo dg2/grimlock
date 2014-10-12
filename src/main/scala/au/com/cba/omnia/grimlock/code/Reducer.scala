@@ -16,9 +16,8 @@ package grimlock.reduce
 
 import grimlock._
 import grimlock.contents._
-import grimlock.Matrix._
 import grimlock.position._
-import grimlock.utilities.{Miscellaneous => Misc}
+import grimlock.utilities.{ Miscellaneous => Misc }
 
 /**
  * Base trait for reductions.
@@ -77,6 +76,18 @@ trait PrepareWithValue { self: Reducer =>
     con: Content, ext: V): T
 }
 
+/**
+ * Convenience trait for [[Reducer]]s that can prepare with or without a user
+ * supplied value.
+ */
+trait PrepareAndWithValue extends Prepare with PrepareWithValue {
+  self: Reducer =>
+  type V = Any
+
+  def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P,
+    con: Content, ext: V): T = prepare(slc, pos, con)
+}
+
 /** Base trait for reductions that return a single value. */
 trait PresentSingle { self: Reducer =>
   /**
@@ -124,6 +135,29 @@ trait PresentMultiple { self: Reducer =>
    */
   def presentMultiple[P <: Position with ExpandablePosition](pos: P,
     t: T): Option[Either[(P#M, Content), List[(P#M, Content)]]]
+}
+
+/**
+ * Convenience trait for [[Reducer]]s that present a value both as
+ * [[PresentSingle]] and [[PresentMultiple]].
+ */
+trait PresentSingleAndMultiple extends PresentSingle with PresentMultiple {
+  self: Reducer =>
+
+  /**
+   * [[position.coordinate.Coordinate]] name to use when presenting the
+   * value as [[PresentMultiple]].
+   */
+  val name: String // TODO: Make into Coordinateable?
+
+  def presentSingle[P <: Position](pos: P,
+    t: T): Option[(P, Content)] = content(t).map { case c => (pos, c) }
+  def presentMultiple[P <: Position with ExpandablePosition](pos: P,
+    t: T): Option[Either[(P#M, Content), List[(P#M, Content)]]] = {
+    content(t).map { case c => Left((pos.append(name), c)) }
+  }
+
+  protected def content(t: T): Option[Content]
 }
 
 /**

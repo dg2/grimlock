@@ -27,7 +27,6 @@ import grimlock.Matrix._
 import grimlock.Names._
 import grimlock.partition._
 import grimlock.partition.Partitions._
-import grimlock.partition.Partitioners._
 import grimlock.position._
 import grimlock.position.coordinate._
 import grimlock.position.PositionPipe._
@@ -93,14 +92,19 @@ class DataSciencePipelineWithFiltering(args : Args) extends Job(args) {
   // Define a custom partition. If the instance is 'iid:0364354' then assign
   // it to the right (test) partition. In all other cases perform standard
   // 70-30 split of the training data based on the hash of the instance id.
-  def CustomPartition[T, P <: Position](dim: Dimension, left: T, right: T): Partitioner.Partition[T, P] =
-    (pos: P, smo: Option[SliceMap]) => {
+  case class CustomPartition[S: Ordering](dim: Dimension, left: S, right: S)
+    extends Partitioner with Assign {
+    type T = S
+
+    val bhs = BinaryHashSplit(dim, 7, left, right, base=10)
+    def assign[P <: Position](pos: P): Option[Either[T, List[T]]] = {
       if (pos.get(dim).toShortString == "iid:0364354") {
         Some(Left(right))
       } else {
-        BinaryHashSplit(dim, 7, left, right, base=10)(pos, smo)
+        bhs.assign(pos)
       }
     }
+  }
 
   // Perform a split of the data into a training and test set.
   val parts = data
