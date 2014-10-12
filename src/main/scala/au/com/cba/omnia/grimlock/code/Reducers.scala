@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.reduce
+package au.com.cba.omnia.grimlock.reduce
 
-import grimlock._
-import grimlock.contents._
-import grimlock.contents.encoding._
-import grimlock.contents.metadata._
-import grimlock.contents.variable.Type._
-import grimlock.position._
+import au.com.cba.omnia.grimlock._
+import au.com.cba.omnia.grimlock.contents._
+import au.com.cba.omnia.grimlock.contents.encoding._
+import au.com.cba.omnia.grimlock.contents.metadata._
+import au.com.cba.omnia.grimlock.contents.variable.Type._
+import au.com.cba.omnia.grimlock.position._
 
 /**
  * Count reductions.

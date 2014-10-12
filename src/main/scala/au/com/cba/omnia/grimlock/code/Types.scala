@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock
+package au.com.cba.omnia.grimlock
+
+import au.com.cba.omnia.grimlock.contents.variable._
+import au.com.cba.omnia.grimlock.position._
 
 import cascading.flow.FlowDef
 import com.twitter.scalding._
 import com.twitter.scalding.TDsl._, Dsl._
-
-import grimlock.contents.variable._
-import grimlock.position._
 
 /**
  * Rich wrapper around a `TypedPipe[(`[[position.Position]]`,

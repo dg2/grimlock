@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.transform
+package au.com.cba.omnia.grimlock.transform
 
-import grimlock.contents._
-import grimlock.position._
-import grimlock.utilities.{ Miscellaneous => Misc }
+import au.com.cba.omnia.grimlock.contents._
+import au.com.cba.omnia.grimlock.position._
+import au.com.cba.omnia.grimlock.utilities.{ Miscellaneous => Misc }
 
 // TODO: Add the ability to compose individual transformers. For example,
 //       first clamp a variable, then normalise. Perhaps use an andThen

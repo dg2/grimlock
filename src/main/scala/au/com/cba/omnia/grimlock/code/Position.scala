@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.position
+package au.com.cba.omnia.grimlock.position
+
+import au.com.cba.omnia.grimlock._
+import au.com.cba.omnia.grimlock.contents._
+import au.com.cba.omnia.grimlock.contents.encoding._
+import au.com.cba.omnia.grimlock.position.coordinate._
 
 import cascading.flow.FlowDef
 import com.twitter.scalding._
 import com.twitter.scalding.TDsl._, Dsl._
 import com.twitter.scalding.typed.IterablePipe
-
-import grimlock._
-import grimlock.contents._
-import grimlock.contents.encoding._
-import grimlock.position.coordinate._
 
 /** Base trait for dealing with positions. */
 trait Position {

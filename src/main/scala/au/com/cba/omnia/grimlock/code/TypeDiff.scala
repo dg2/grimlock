@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.utilities
+package au.com.cba.omnia.grimlock.utilities
 
 /**
  * This code is a carbon copy of an answer on stackoverflow:

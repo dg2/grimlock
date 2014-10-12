@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.contents.metadata
+package au.com.cba.omnia.grimlock.contents.metadata
 
-import grimlock.contents._
-import grimlock.contents.encoding._
-import grimlock.contents.variable._
+import au.com.cba.omnia.grimlock.contents._
+import au.com.cba.omnia.grimlock.contents.encoding._
+import au.com.cba.omnia.grimlock.contents.variable._
 
 /** Base trait for variable schemas. */
 trait Schema {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.position
+package au.com.cba.omnia.grimlock.position
 
 /** Base trait for dimensions of a [[Matrix]]. */
 sealed trait Dimension {

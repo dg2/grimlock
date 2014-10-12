@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.contents.metadata
+package au.com.cba.omnia.grimlock.contents.metadata
 
 object Dictionary {
   /** Placeholder type of a dictionary (map of schema). */

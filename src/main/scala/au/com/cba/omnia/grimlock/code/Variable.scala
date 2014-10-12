@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.contents.variable
+package au.com.cba.omnia.grimlock.contents.variable
 
-import grimlock.contents.encoding._
-import grimlock.contents.encoding.Codex._
-import grimlock.contents.events._
-import grimlock.utilities._
+import au.com.cba.omnia.grimlock.contents.encoding._
+import au.com.cba.omnia.grimlock.contents.encoding.Codex._
+import au.com.cba.omnia.grimlock.contents.events._
+import au.com.cba.omnia.grimlock.utilities._
 
 import java.util.Date
 

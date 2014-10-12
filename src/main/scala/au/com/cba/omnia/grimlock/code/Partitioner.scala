@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.partition
+package au.com.cba.omnia.grimlock.partition
+
+import au.com.cba.omnia.grimlock.contents._
+import au.com.cba.omnia.grimlock.position._
 
 import cascading.flow.FlowDef
 import com.twitter.scalding._
 import com.twitter.scalding.TDsl._, Dsl._
-
-import grimlock.contents._
-import grimlock.position._
 
 /** Base trait for partitioning operations. */
 trait Partitioner {

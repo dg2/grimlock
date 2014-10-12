@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.contents.encoding
+package au.com.cba.omnia.grimlock.contents.encoding
 
-import grimlock.contents.events._
-import grimlock.contents.variable._
-import grimlock.position.coordinate._
+import au.com.cba.omnia.grimlock.contents.events._
+import au.com.cba.omnia.grimlock.contents.variable._
+import au.com.cba.omnia.grimlock.position.coordinate._
 
 import java.text.SimpleDateFormat
 

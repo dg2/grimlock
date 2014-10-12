@@ -12,25 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock
+package au.com.cba.omnia.grimlock
+
+import au.com.cba.omnia.grimlock.contents._
+import au.com.cba.omnia.grimlock.contents.encoding._
+import au.com.cba.omnia.grimlock.contents.metadata._
+import au.com.cba.omnia.grimlock.contents.metadata.Dictionary._
+import au.com.cba.omnia.grimlock.contents.variable._
+import au.com.cba.omnia.grimlock.derive._
+import au.com.cba.omnia.grimlock.Matrix._
+import au.com.cba.omnia.grimlock.partition._
+import au.com.cba.omnia.grimlock.position._
+import au.com.cba.omnia.grimlock.reduce._
+import au.com.cba.omnia.grimlock.transform._
+import au.com.cba.omnia.grimlock.utilities.{ =!=, Miscellaneous => Misc }
 
 import cascading.flow.FlowDef
 import com.twitter.scalding._
 import com.twitter.scalding.TDsl._, Dsl._
 import com.twitter.scalding.typed.IterablePipe
-
-import grimlock.contents._
-import grimlock.contents.encoding._
-import grimlock.contents.metadata._
-import grimlock.contents.metadata.Dictionary._
-import grimlock.contents.variable._
-import grimlock.derive._
-import grimlock.Matrix._
-import grimlock.partition._
-import grimlock.position._
-import grimlock.reduce._
-import grimlock.transform._
-import grimlock.utilities.{ =!=, Miscellaneous => Misc }
 
 /**
  * Rich wrapper around a `TypedPipe[(`[[position.Position]]`,

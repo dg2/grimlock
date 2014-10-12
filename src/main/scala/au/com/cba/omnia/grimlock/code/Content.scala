@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.contents
+package au.com.cba.omnia.grimlock.contents
+
+import au.com.cba.omnia.grimlock.contents.encoding._
+import au.com.cba.omnia.grimlock.contents.metadata._
+import au.com.cba.omnia.grimlock.contents.variable._
 
 import cascading.flow.FlowDef
 import com.twitter.scalding._
 import com.twitter.scalding.TDsl._, Dsl._
-
-import grimlock.contents.encoding._
-import grimlock.contents.metadata._
-import grimlock.contents.variable._
 
 /** Contents of a cell in a [[Matrix]]. */
 trait Content {

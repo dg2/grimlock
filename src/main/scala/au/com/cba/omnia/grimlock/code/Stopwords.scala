@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.NLP
+package au.com.cba.omnia.grimlock.NLP
 
 /** Defines stopwords for various languages. */
 object Stopwords {

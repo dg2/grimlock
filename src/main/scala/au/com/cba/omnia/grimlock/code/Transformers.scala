@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.transform
+package au.com.cba.omnia.grimlock.transform
 
-import grimlock.contents._
-import grimlock.contents.encoding._
-import grimlock.contents.metadata._
-import grimlock.contents.variable.Type._
-import grimlock.position._
-import grimlock.position.coordinate._
+import au.com.cba.omnia.grimlock.contents._
+import au.com.cba.omnia.grimlock.contents.encoding._
+import au.com.cba.omnia.grimlock.contents.metadata._
+import au.com.cba.omnia.grimlock.contents.variable.Type._
+import au.com.cba.omnia.grimlock.position._
+import au.com.cba.omnia.grimlock.position.coordinate._
 
 /** Convenience trait for transformations involving `Double` values. */
 trait AsDouble {

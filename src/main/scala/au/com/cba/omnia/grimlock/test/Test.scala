@@ -12,35 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.test
+package au.com.cba.omnia.grimlock.test
 
+import au.com.cba.omnia.grimlock._
+import au.com.cba.omnia.grimlock.contents._
+import au.com.cba.omnia.grimlock.contents.ContentPipe._
+import au.com.cba.omnia.grimlock.contents.encoding._
+import au.com.cba.omnia.grimlock.contents.metadata._
+import au.com.cba.omnia.grimlock.contents.variable._
+import au.com.cba.omnia.grimlock.contents.variable.Type._
+import au.com.cba.omnia.grimlock.derive._
+import au.com.cba.omnia.grimlock.Matrix._
+import au.com.cba.omnia.grimlock.Names._
+import au.com.cba.omnia.grimlock.partition._
+import au.com.cba.omnia.grimlock.partition.Partitions._
+import au.com.cba.omnia.grimlock.position._
+import au.com.cba.omnia.grimlock.position.coordinate._
+import au.com.cba.omnia.grimlock.position.PositionPipe._
+import au.com.cba.omnia.grimlock.reduce._
+import au.com.cba.omnia.grimlock.transform._
+import au.com.cba.omnia.grimlock.Types._
+
+import cascading.flow.FlowDef
 import com.twitter.scalding._
 import com.twitter.scalding.TDsl._, Dsl._
 import com.twitter.scalding.typed.IterablePipe
-import cascading.flow.FlowDef
-
-import grimlock._
-import grimlock.contents._
-import grimlock.contents.ContentPipe._
-import grimlock.contents.encoding._
-import grimlock.contents.events._
-import grimlock.contents.metadata._
-import grimlock.contents.variable._
-import grimlock.contents.variable.Type._
-import grimlock.derive._
-import grimlock.Matrix._
-import grimlock.Names._
-import grimlock.NLP._
-import grimlock.partition._
-import grimlock.partition.Partitions._
-import grimlock.position._
-import grimlock.position.coordinate._
-import grimlock.position.PositionPipe._
-import grimlock.reduce._
-import grimlock.sample._
-import grimlock.transform._
-import grimlock.Types._
-import grimlock.utilities._
 
 object TestReader {
   def read4TupleDataAddDate(file: String)(implicit flow: FlowDef, mode: Mode): TypedPipe[(Position3D, Content)] = {

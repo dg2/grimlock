@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.position.coordinate
+package au.com.cba.omnia.grimlock.position.coordinate
 
-import grimlock.contents.encoding._
-import grimlock.utilities._
+import au.com.cba.omnia.grimlock.contents.encoding._
+import au.com.cba.omnia.grimlock.utilities._
 
 import java.util.Date
 

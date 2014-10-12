@@ -12,27 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grimlock.examples
+package au.com.cba.omnia.grimlock.examples
+
+import au.com.cba.omnia.grimlock._
+import au.com.cba.omnia.grimlock.contents._
+import au.com.cba.omnia.grimlock.Matrix._
+import au.com.cba.omnia.grimlock.Names._
+import au.com.cba.omnia.grimlock.partition._
+import au.com.cba.omnia.grimlock.partition.Partitions._
+import au.com.cba.omnia.grimlock.position._
+import au.com.cba.omnia.grimlock.position.PositionPipe._
+import au.com.cba.omnia.grimlock.reduce._
+import au.com.cba.omnia.grimlock.transform._
+import au.com.cba.omnia.grimlock.Types._
 
 import com.twitter.scalding._
-
-import grimlock._
-import grimlock.contents._
-import grimlock.contents.ContentPipe._
-import grimlock.contents.encoding._
-import grimlock.contents.metadata._
-import grimlock.contents.variable._
-import grimlock.contents.variable.Type._
-import grimlock.Matrix._
-import grimlock.Names._
-import grimlock.partition._
-import grimlock.partition.Partitions._
-import grimlock.position._
-import grimlock.position.coordinate._
-import grimlock.position.PositionPipe._
-import grimlock.reduce._
-import grimlock.transform._
-import grimlock.Types._
 
 class BasicOperations(args : Args) extends Job(args) {
   // Read the data. This returns a 2D matrix (instance x feature).
