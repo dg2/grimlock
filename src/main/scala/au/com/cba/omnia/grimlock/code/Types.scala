@@ -65,7 +65,8 @@ object Types {
    * Conversion from `TypedPipe[(`[[position.Position]]`,
    * `[[contents.variable.Type]]`)]` to a [[Types]].
    */
-  implicit def typedPipePositionType[P <: Position](data: TypedPipe[(P, Type)]): Types[P] = {
+  implicit def typedPipePositionType[P <: Position](
+    data: TypedPipe[(P, Type)]): Types[P] = {
     new Types(data)
   }
 }

@@ -226,7 +226,8 @@ case class Position0D() extends Position with ExpandablePosition {
  *
  * @param first [[coordinate.Coordinate]] for the first dimension.
  */
-case class Position1D(first: Coordinate) extends Position with ModifyablePosition with ReduceablePosition with ExpandablePosition {
+case class Position1D(first: Coordinate) extends Position
+  with ModifyablePosition with ReduceablePosition with ExpandablePosition {
   type L = Position0D
   type S = Position1D
   type M = Position2D
@@ -267,7 +268,8 @@ object Position1D {
  * @param first  [[coordinate.Coordinate]] for the first dimension.
  * @param second [[coordinate.Coordinate]] for the second dimension.
  */
-case class Position2D(first: Coordinate, second: Coordinate) extends Position with ModifyablePosition with ReduceablePosition with ExpandablePosition {
+case class Position2D(first: Coordinate, second: Coordinate) extends Position
+  with ModifyablePosition with ReduceablePosition with ExpandablePosition {
   type L = Position1D
   type S = Position2D
   type M = Position3D
@@ -317,7 +319,9 @@ object Position2D {
  * @param second [[coordinate.Coordinate]] for the second dimension.
  * @param third  [[coordinate.Coordinate]] for the third dimension.
  */
-case class Position3D(first: Coordinate, second: Coordinate, third: Coordinate) extends Position with ModifyablePosition with ReduceablePosition with ExpandablePosition {
+case class Position3D(first: Coordinate, second: Coordinate,
+  third: Coordinate) extends Position with ModifyablePosition
+    with ReduceablePosition with ExpandablePosition {
   type L = Position2D
   type S = Position3D
   type M = Position4D
@@ -374,7 +378,8 @@ object Position3D {
  * @param fourth [[coordinate.Coordinate]] for the fourth dimension.
  */
 case class Position4D(first: Coordinate, second: Coordinate, third: Coordinate,
-  fourth: Coordinate) extends Position with ModifyablePosition with ReduceablePosition with ExpandablePosition {
+  fourth: Coordinate) extends Position with ModifyablePosition
+    with ReduceablePosition with ExpandablePosition {
   type L = Position3D
   type S = Position4D
   type M = Position5D
@@ -435,7 +440,8 @@ object Position4D {
  * @param fifth  [[coordinate.Coordinate]] for the fifth dimension.
  */
 case class Position5D(first: Coordinate, second: Coordinate, third: Coordinate,
-  fourth: Coordinate, fifth: Coordinate) extends Position with ModifyablePosition with ReduceablePosition {
+  fourth: Coordinate, fifth: Coordinate) extends Position
+    with ModifyablePosition with ReduceablePosition {
   type L = Position4D
   type S = Position5D
 
@@ -508,7 +514,8 @@ class PositionPipe[P <: Position](data: TypedPipe[P]) {
    *
    * @see [[Names]]
    */
-  def names[D <: Dimension](slice: Slice[P, D])(implicit ev: PosDimDep[P, D]): TypedPipe[(slice.S, Long)] = {
+  def names[D <: Dimension](slice: Slice[P, D])(
+    implicit ev: PosDimDep[P, D]): TypedPipe[(slice.S, Long)] = {
     implicit def PositionOrdering[T <: Position] = {
       new Ordering[T] { def compare(l: T, r: T) = l.compare(r) }
     }
@@ -547,7 +554,8 @@ class PositionPipe[P <: Position](data: TypedPipe[P]) {
 /** Companion object for the [[PositionPipe]] class. */
 object PositionPipe {
   /** Converts a `TypedPipe[`[[Position]]`]` to a [[PositionPipe]]. */
-  implicit def typedPipePosition[P <: Position](data: TypedPipe[P]): PositionPipe[P] = {
+  implicit def typedPipePosition[P <: Position](
+    data: TypedPipe[P]): PositionPipe[P] = {
     new PositionPipe(data)
   }
 }
@@ -595,13 +603,15 @@ trait PositionListable[T, P <: Position] {
 /** Companion object for the [[PositionListable]] type class. */
 object PositionListable {
   /** Converts a `List[`[[Positionable]]`]` to a `List[`[[Position]]`]`. */
-  implicit def ListPositionablePositionListable[T, P <: Position](implicit ev: Positionable[T, P]): PositionListable[List[T], P] = {
+  implicit def ListPositionablePositionListable[T, P <: Position](
+    implicit ev: Positionable[T, P]): PositionListable[List[T], P] = {
     new PositionListable[List[T], P] {
       def convert(t: List[T]): List[P] = t.map(ev.convert(_))
     }
   }
   /** Converts a [[Positionable]] to a `List[`[[Position]]`]`. */
-  implicit def PositionablePositionListable[T, P <: Position](implicit ev: Positionable[T, P]): PositionListable[T, P] = {
+  implicit def PositionablePositionListable[T, P <: Position](
+    implicit ev: Positionable[T, P]): PositionListable[T, P] = {
     new PositionListable[T, P] {
       def convert(t: T): List[P] = List(ev.convert(t))
     }
@@ -631,7 +641,9 @@ object PositionPipeable {
     }
   }
   /** Converts a `List[`[[Positionable]]`]` to a `TypedPipe[`[[Position]]`]`. */
-  implicit def ListPositionablePositionPipeable[T, P <: Position](implicit ev: Positionable[T, P], flow: FlowDef, mode: Mode): PositionPipeable[List[T], P] = {
+  implicit def ListPositionablePositionPipeable[T, P <: Position](
+    implicit ev: Positionable[T, P], flow: FlowDef,
+      mode: Mode): PositionPipeable[List[T], P] = {
     new PositionPipeable[List[T], P] {
       def convert(t: List[T]): TypedPipe[P] = {
         new IterablePipe(t.map(ev.convert(_)), flow, mode)
@@ -639,7 +651,9 @@ object PositionPipeable {
     }
   }
   /** Converts a [[Positionable]] to a `TypedPipe[`[[Position]]`]`. */
-  implicit def PositionablePositionPipeable[T, P <: Position](implicit ev: Positionable[T, P], flow: FlowDef, mode: Mode): PositionPipeable[T, P] = {
+  implicit def PositionablePositionPipeable[T, P <: Position](
+    implicit ev: Positionable[T, P], flow: FlowDef,
+      mode: Mode): PositionPipeable[T, P] = {
     new PositionPipeable[T, P] {
       def convert(t: T): TypedPipe[P] = {
         new IterablePipe(List(ev.convert(t)), flow, mode)

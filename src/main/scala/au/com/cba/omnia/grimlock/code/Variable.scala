@@ -193,8 +193,8 @@ trait Value {
  * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
  *              `value`.
  */
-case class DateValue(value: java.util.Date,
-  codex: DateAndTimeCodex) extends Value {
+case class DateValue(value: java.util.Date, codex: DateAndTimeCodex)
+  extends Value {
   override def asDate = Some(value)
 }
 
@@ -205,8 +205,8 @@ case class DateValue(value: java.util.Date,
  * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
  *              `value`.
  */
-case class StringValue(value: String,
-  codex: Codex with ValueCodex) extends Value {
+case class StringValue(value: String, codex: Codex with ValueCodex)
+  extends Value {
   override def asString = Some(value.toString)
 }
 
@@ -217,8 +217,8 @@ case class StringValue(value: String,
  * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
  *              `value`.
  */
-case class DoubleValue(value: Double,
-  codex: Codex with ValueCodex) extends Value {
+case class DoubleValue(value: Double, codex: Codex with ValueCodex)
+  extends Value {
   override def asDouble = Some(value)
 }
 
@@ -229,8 +229,8 @@ case class DoubleValue(value: Double,
  * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
  *              `value`.
  */
-case class LongValue(value: Long,
-  codex: Codex with ValueCodex) extends Value {
+case class LongValue(value: Long, codex: Codex with ValueCodex)
+  extends Value {
   override def asDouble = Some(value)
   override def asLong = Some(value)
 }
@@ -242,8 +242,8 @@ case class LongValue(value: Long,
  * @param codex The [[contents.encoding.Codex]] used for encoding/decoding
  *              `value`.
  */
-case class BooleanValue(value: Boolean,
-  codex: Codex with ValueCodex) extends Value {
+case class BooleanValue(value: Boolean, codex: Codex with ValueCodex)
+  extends Value {
   override def asBoolean = Some(value)
 }
 

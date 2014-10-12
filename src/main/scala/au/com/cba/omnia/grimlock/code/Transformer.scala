@@ -17,7 +17,7 @@ package grimlock.transform
 import grimlock.contents._
 import grimlock.Matrix._
 import grimlock.position._
-import grimlock.utilities._
+import grimlock.utilities.{Miscellaneous => Misc}
 
 // TODO: Add the ability to compose individual transformers. For example,
 //       first clamp a variable, then normalise. Perhaps use an andThen
@@ -25,11 +25,6 @@ import grimlock.utilities._
 
 /** Base trait for transformations. */
 trait Transformer
-
-trait ExternalValue {
-  /** Type of the external value. */
-  type V
-}
 
 /** Base trait for transformers that do not modify the number of dimensions. */
 trait Present { self: Transformer =>
@@ -63,7 +58,10 @@ trait Present { self: Transformer =>
  * Base trait for transformers that use a user supplied value but do not
  * modify the number of dimensions.
  */
-trait PresentWithValue extends ExternalValue { self: Transformer =>
+trait PresentWithValue { self: Transformer =>
+  /** Type of the external value. */
+  type V
+
   /**
    * Present the transformed [[contents.Content]](s).
    *
@@ -126,7 +124,10 @@ trait PresentExpanded { self: Transformer =>
  * Base trait for transformers that use a user supplied value and expand the
  * [[position.Position]] by appending a dimension.
  */
-trait PresentExpandedWithValue extends ExternalValue { self: Transformer =>
+trait PresentExpandedWithValue { self: Transformer =>
+  /** Type of the external value. */
+  type V
+
   /**
    * Present the transformed [[contents.Content]](s).
    *
@@ -167,10 +168,11 @@ trait PresentExpandedWithValue extends ExternalValue { self: Transformer =>
  *
  * @see [[Transformable]]
  */
-case class CombinationTransformer[T <: Transformer with Present](singles: List[T]) extends Transformer with Present {
+case class CombinationTransformer[T <: Transformer with Present](
+  singles: List[T]) extends Transformer with Present {
   def present[P <: Position with ModifyablePosition](pos: P, con: Content) = {
     Some(Right(singles.flatMap {
-      case s => Miscellaneous.mapFlatten(s.present(pos, con))
+      case s => Misc.mapFlatten(s.present(pos, con))
     }))
   }
 }
@@ -192,8 +194,7 @@ case class CombinationTransformerWithValue[T <: Transformer with PresentWithValu
   def present[P <: Position with ModifyablePosition](pos: P, con: Content,
     ext: V) = {
     Some(Right(singles.flatMap {
-      case s => Miscellaneous.mapFlatten(s.present(pos, con,
-        ext.asInstanceOf[s.V]))
+      case s => Misc.mapFlatten(s.present(pos, con, ext.asInstanceOf[s.V]))
     }))
   }
 }
@@ -213,7 +214,7 @@ case class CombinationTransformerWithValue[T <: Transformer with PresentWithValu
 case class CombinationTransformerExpanded[T <: Transformer with PresentExpanded](singles: List[T]) extends Transformer with PresentExpanded {
   def present[P <: Position with ExpandablePosition](pos: P, con: Content) = {
     Some(Right(singles.flatMap {
-      case s => Miscellaneous.mapFlatten(s.present(pos, con))
+      case s => Misc.mapFlatten(s.present(pos, con))
     }))
   }
 }
@@ -235,8 +236,7 @@ case class CombinationTransformerExpandedWithValue[T <: Transformer with Present
   def present[P <: Position with ExpandablePosition](pos: P, con: Content,
     ext: W) = {
     Some(Right(singles.flatMap {
-      case s => Miscellaneous.mapFlatten(s.present(pos, con,
-        ext.asInstanceOf[s.V]))
+      case s => Misc.mapFlatten(s.present(pos, con, ext.asInstanceOf[s.V]))
     }))
   }
 }

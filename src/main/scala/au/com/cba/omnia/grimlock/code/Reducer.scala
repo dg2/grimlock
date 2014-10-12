@@ -18,7 +18,7 @@ import grimlock._
 import grimlock.contents._
 import grimlock.Matrix._
 import grimlock.position._
-import grimlock.utilities._
+import grimlock.utilities.{Miscellaneous => Misc}
 
 /**
  * Base trait for reductions.
@@ -154,9 +154,8 @@ case class CombinationReducerMultiple[T <: Reducer with Prepare with PresentMult
   def presentMultiple[P <: Position with ExpandablePosition](pos: P,
     t: T): Option[Either[(P#M, Content), List[(P#M, Content)]]] = {
     Some(Right((reducers, t).zipped.flatMap {
-      case (reducer, s) =>
-        Miscellaneous.mapFlatten(reducer.presentMultiple(pos,
-          s.asInstanceOf[reducer.T]))
+      case (reducer, s) => Misc.mapFlatten(reducer.presentMultiple(pos,
+        s.asInstanceOf[reducer.T]))
     }))
   }
 }
@@ -193,9 +192,8 @@ case class CombinationReducerMultipleWithValue[T <: Reducer with PrepareWithValu
   def presentMultiple[P <: Position with ExpandablePosition](pos: P,
     t: T): Option[Either[(P#M, Content), List[(P#M, Content)]]] = {
     Some(Right((reducers, t).zipped.flatMap {
-      case (reducer, s) =>
-        Miscellaneous.mapFlatten(reducer.presentMultiple(pos,
-          s.asInstanceOf[reducer.T]))
+      case (reducer, s) => Misc.mapFlatten(reducer.presentMultiple(pos,
+        s.asInstanceOf[reducer.T]))
     }))
   }
 }

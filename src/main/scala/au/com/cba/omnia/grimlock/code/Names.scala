@@ -68,7 +68,8 @@ class Names[P <: Position](data: TypedPipe[(P, Long)]) {
    *
    * @see [[position.PositionListable]]
    */
-  def slice[T](positions: T, keep: Boolean)(implicit ev: PositionListable[T, P]): TypedPipe[(P, Long)] = {
+  def slice[T](positions: T, keep: Boolean)(
+    implicit ev: PositionListable[T, P]): TypedPipe[(P, Long)] = {
     slice(keep, p => ev.convert(positions).contains(p))
   }
 
@@ -82,8 +83,8 @@ class Names[P <: Position](data: TypedPipe[(P, Long)]) {
    *
    * @see [[position.Positionable]]
    */
-  def set[T](position: T,
-    index: Long)(implicit ev: Positionable[T, P]): TypedPipe[(P, Long)] = {
+  def set[T](position: T, index: Long)(
+    implicit ev: Positionable[T, P]): TypedPipe[(P, Long)] = {
     set(Map(position -> index))
   }
 
@@ -97,7 +98,8 @@ class Names[P <: Position](data: TypedPipe[(P, Long)]) {
    *
    * @see [[position.Positionable]]
    */
-  def set[T](positions: Map[T, Long])(implicit ev: Positionable[T, P]): TypedPipe[(P, Long)] = {
+  def set[T](positions: Map[T, Long])(
+    implicit ev: Positionable[T, P]): TypedPipe[(P, Long)] = {
     val converted = positions.map { case (k, v) => ev.convert(k) -> v }
 
     data.map { case (p, i) => (p, converted.getOrElse(p, i)) }
@@ -113,7 +115,8 @@ class Names[P <: Position](data: TypedPipe[(P, Long)]) {
    *
    * @see [[position.Positionable]]
    */
-  def moveToFront[T](position: T)(implicit ev: Positionable[T, P]): TypedPipe[(P, Long)] = {
+  def moveToFront[T](position: T)(
+    implicit ev: Positionable[T, P]): TypedPipe[(P, Long)] = {
     data.map {
       case (p, i) => (p, if (p == ev.convert(position)) 0 else i + 1)
     }
@@ -129,7 +132,8 @@ class Names[P <: Position](data: TypedPipe[(P, Long)]) {
    *
    * @see [[position.Positionable]]
    */
-  def moveToBack[T](position: T)(implicit ev: Positionable[T, P]): TypedPipe[(P, Long)] = {
+  def moveToBack[T](position: T)(
+    implicit ev: Positionable[T, P]): TypedPipe[(P, Long)] = {
     val state = data
       .map { case (p, i) => Map(p -> i) }
       .sum
@@ -140,7 +144,10 @@ class Names[P <: Position](data: TypedPipe[(P, Long)]) {
     data
       .flatMapWithValue(state) {
         case ((p, i), so) => so.map {
-          case s => (p, if (s("curr") < i) i - 1 else if (p == ev.convert(position)) s("max") else i)
+          case s => (p,
+            if (s("curr") < i) i - 1
+            else if (p == ev.convert(position)) s("max")
+            else i)
         }
       }
   }
@@ -177,7 +184,8 @@ object Names {
    * Conversion from `TypedPipe[(`[[position.Position]]`, Long)]` to a
    * [[Names]].
    */
-  implicit def typedPipePositionLong[P <: Position](data: TypedPipe[(P, Long)]): Names[P] = {
+  implicit def typedPipePositionLong[P <: Position](
+    data: TypedPipe[(P, Long)]): Names[P] = {
     new Names(data)
   }
 

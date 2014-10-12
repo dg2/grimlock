@@ -64,7 +64,8 @@ trait Mapable[P <: Position with ReduceablePosition, D <: Dimension] {
  *
  * @param dimension [[position.Dimension]] of the selected coordinate.
  */
-case class Over[P <: Position with ReduceablePosition, D <: Dimension](dimension: D) extends Slice[P, D] with Mapable[P, D] {
+case class Over[P <: Position with ReduceablePosition, D <: Dimension](
+  dimension: D) extends Slice[P, D] with Mapable[P, D] {
   type S = Position1D
   type R = P#L
   type I = Along[P, D]
@@ -95,7 +96,8 @@ case class Over[P <: Position with ReduceablePosition, D <: Dimension](dimension
  *
  * @param dimension [[position.Dimension]] of the coordinate to exclude.
  */
-case class Along[P <: Position with ReduceablePosition, D <: Dimension](dimension: D) extends Slice[P, D] with Mapable[P, D] {
+case class Along[P <: Position with ReduceablePosition, D <: Dimension](
+  dimension: D) extends Slice[P, D] with Mapable[P, D] {
   type S = P#L
   type R = Position1D
   type I = Over[P, D]

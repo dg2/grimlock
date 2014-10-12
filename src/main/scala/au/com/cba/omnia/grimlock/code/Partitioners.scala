@@ -41,7 +41,8 @@ object Partitioners {
   def BinaryHashSplit[T, P <: Position](dim: Dimension, ratio: Int, left: T,
     right: T, base: Int = 100): Partitioner.Partition[T, P] =
     (pos: P, smo: Option[SliceMap]) => {
-      Some(Left(if (math.abs(pos.get(dim).hashCode % base) <= ratio) left else right))
+      Some(Left(
+        if (math.abs(pos.get(dim).hashCode % base) <= ratio) left else right))
     }
 
   /**
@@ -70,7 +71,8 @@ object Partitioners {
     (pos: P, smo: Option[SliceMap]) => {
       val hash = math.abs(pos.get(dim).hashCode % base)
 
-      Some(Left(if (hash <= lower) left else if (hash <= upper) middle else right))
+      Some(Left(
+        if (hash <= lower) left else if (hash <= upper) middle else right))
     }
 
   /**

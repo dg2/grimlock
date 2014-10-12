@@ -66,7 +66,8 @@ trait PresentSingleAndMultiple extends PresentSingle with PresentMultiple {
  *
  * @note `name` is only used when presenting [[PresentMultiple]].
  */
-case class Count(name: String = "count") extends Reducer with PrepareAndWithValue with PresentSingleAndMultiple {
+case class Count(name: String = "count") extends Reducer
+  with PrepareAndWithValue with PresentSingleAndMultiple {
   type T = Long
 
   def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P,
@@ -91,7 +92,11 @@ case class Count(name: String = "count") extends Reducer with PrepareAndWithValu
  *
  * @note `names` is only used when presenting [[PresentMultiple]].
  */
-case class Moments(strict: Boolean = true, nan: Boolean = false, only: List[Int] = List(1, 2, 3, 4), names: List[String] = List("mean", "std", "skewness", "kurtosis")) extends Reducer with PrepareAndWithValue with PresentSingle with PresentMultiple {
+case class Moments(strict: Boolean = true, nan: Boolean = false,
+  only: List[Int] = List(1, 2, 3, 4),
+  names: List[String] = List("mean", "std", "skewness", "kurtosis"))
+  extends Reducer with PrepareAndWithValue with PresentSingle
+    with PresentMultiple {
   type T = com.twitter.algebird.Moments
 
   def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P,
@@ -133,7 +138,8 @@ case class Moments(strict: Boolean = true, nan: Boolean = false, only: List[Int]
 }
 
 /** Base trait for reducers that return a `Double` value. */
-trait DoubleReducer extends Reducer with PrepareAndWithValue with PresentSingleAndMultiple {
+trait DoubleReducer extends Reducer with PrepareAndWithValue
+  with PresentSingleAndMultiple {
   type T = Double
 
   /**
@@ -208,7 +214,10 @@ case class Sum(strict: Boolean = true, nan: Boolean = false,
  *       [[position.Position.toShortString]].
  */
 // TODO: Add option to limit maximum number of categories
-case class Histogram(all: Boolean = false, meta: Boolean = true, names: List[String] = List("num.cat", "entropy", "freq.ratio"), prefix: Option[String] = Some("%s="), separator: String = "") extends Reducer with PrepareAndWithValue with PresentMultiple {
+case class Histogram(all: Boolean = false, meta: Boolean = true,
+  names: List[String] = List("num.cat", "entropy", "freq.ratio"),
+  prefix: Option[String] = Some("%s="), separator: String = "")
+    extends Reducer with PrepareAndWithValue with PresentMultiple {
   type T = Option[Map[String, Long]]
 
   def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P,
@@ -278,7 +287,9 @@ case class Histogram(all: Boolean = false, meta: Boolean = true, names: List[Str
  * @param names     Names of the counts.
  */
 // TODO: Test this
-case class ThresholdCount(strict: Boolean = true, nan: Boolean = false, threshold: Double = 0, names: List[String] = List("leq.count", "gtr.count")) extends Reducer with PrepareAndWithValue with PresentMultiple {
+case class ThresholdCount(strict: Boolean = true, nan: Boolean = false,
+  threshold: Double = 0, names: List[String] = List("leq.count", "gtr.count"))
+    extends Reducer with PrepareAndWithValue with PresentMultiple {
   type T = (Long, Long) // (leq, gtr)
 
   def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P,
@@ -320,7 +331,8 @@ case class ThresholdCount(strict: Boolean = true, nan: Boolean = false, threshol
  * @param state  Name of the field in the user supplied value which is used
  *               as the weights.
  */
-case class WeightedSum(dim: Dimension, state: String = "weight") extends Reducer with PrepareWithValue with PresentSingle {
+case class WeightedSum(dim: Dimension, state: String = "weight")
+  extends Reducer with PrepareWithValue with PresentSingle {
   type T = Double
   type V = Map[Position1D, Map[Position1D, Content]]
 
@@ -355,7 +367,8 @@ case class WeightedSum(dim: Dimension, state: String = "weight") extends Reducer
  * @note `name` is only used when presenting [[PresentMultiple]].
  */
 // TODO: Test this
-case class DistinctCount(name: String = "distinct.count") extends Reducer with PrepareAndWithValue with PresentSingleAndMultiple {
+case class DistinctCount(name: String = "distinct.count") extends Reducer
+  with PrepareAndWithValue with PresentSingleAndMultiple {
   type T = Set[String]
 
   def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P,
@@ -376,7 +389,9 @@ case class DistinctCount(name: String = "distinct.count") extends Reducer with P
  * @note Usage of a `%d` in the name will be substituded with percentile index.
  */
 // TODO: Test this
-case class Percentiles(percentiles: Int, name: Option[String] = Some("percentile.%d")) extends Reducer with PrepareAndWithValue with PresentMultiple {
+case class Percentiles(percentiles: Int,
+  name: Option[String] = Some("percentile.%d")) extends Reducer
+    with PrepareAndWithValue with PresentMultiple {
   type T = Map[Double, Long]
 
   def prepare[P <: Position, D <: Dimension](slc: Slice[P, D], pos: P,

@@ -42,7 +42,8 @@ object Partitioner {
  * @param data `TypedPipe[(T, (`[[position.Position]]`,
  *             `[[contents.Content]]`))]`.
  */
-class Partitions[T: Ordering, P <: Position](data: TypedPipe[(T, (P, Content))]) {
+class Partitions[T: Ordering, P <: Position](
+  data: TypedPipe[(T, (P, Content))]) {
   // TODO: Add 'keys'/'hasKey'/'set'/'modify' methods?
   // TODO: Add 'foreach' method - to apply function to all data for each key
 
@@ -93,7 +94,8 @@ object Partitions {
    * Conversion from `TypedPipe[(T, (`[[position.Position]]`,
    * `[[contents.Content]]`))]` to a [[Partitions]].
    */
-  implicit def typedPipeTPositionContent[T: Ordering, P <: Position](data: TypedPipe[(T, (P, Content))]): Partitions[T, P] = {
+  implicit def typedPipeTPositionContent[T: Ordering, P <: Position](
+    data: TypedPipe[(T, (P, Content))]): Partitions[T, P] = {
     new Partitions(data)
   }
 }

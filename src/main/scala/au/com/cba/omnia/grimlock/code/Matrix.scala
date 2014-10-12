@@ -34,7 +34,7 @@ import grimlock.position._
 import grimlock.position.coordinate._
 import grimlock.reduce._
 import grimlock.transform._
-import grimlock.utilities._
+import grimlock.utilities.{=!=, Miscellaneous => Misc}
 
 /**
  * Rich wrapper around a `TypedPipe[(`[[position.Position]]`,
@@ -66,7 +66,8 @@ trait Matrix[P <: Position] {
    *
    * @see [[Names]], [[Matrix2D]]
    */
-  def names[D <: Dimension](slice: Slice[P, D])(implicit ev: PosDimDep[P, D]): TypedPipe[(slice.S, Long)] = {
+  def names[D <: Dimension](slice: Slice[P, D])(
+    implicit ev: PosDimDep[P, D]): TypedPipe[(slice.S, Long)] = {
     Names.number(data.map { case (p, c) => slice.selected(p) }.distinct)
   }
 
@@ -85,7 +86,8 @@ trait Matrix[P <: Position] {
    *
    * @see [[Types]], [[contents.variable.Type]]
    */
-  def types[D <: Dimension](slice: Slice[P, D], specific: Boolean = false)(implicit ev: PosDimDep[P, D]): TypedPipe[(slice.S, Type)] = {
+  def types[D <: Dimension](slice: Slice[P, D], specific: Boolean = false)(
+    implicit ev: PosDimDep[P, D]): TypedPipe[(slice.S, Type)] = {
     data
       .map { case (p, c) => (slice.selected(p), c.schema.kind) }
       .groupBy { case (p, t) => p }
@@ -121,7 +123,8 @@ trait Matrix[P <: Position] {
    *         actual size in it as a [[contents.variable.Type.Discrete]]
    *         variable.
    */
-  def size[D <: Dimension](dim: D, distinct: Boolean = false)(implicit ev: PosDimDep[P, D]): TypedPipe[(Position1D, Content)] = {
+  def size[D <: Dimension](dim: D, distinct: Boolean = false)(
+    implicit ev: PosDimDep[P, D]): TypedPipe[(Position1D, Content)] = {
     val coords = data.map { case (p, c) => p.get(dim) }
     val dist = distinct match {
       case true => coords
@@ -251,7 +254,8 @@ trait Matrix[P <: Position] {
    *
    * @see [[position.PositionPipeable]]
    */
-  def get[T](positions: T)(implicit ev: PositionPipeable[T, P]): TypedPipe[(P, Content)] = {
+  def get[T](positions: T)(
+    implicit ev: PositionPipeable[T, P]): TypedPipe[(P, Content)] = {
     data
       .groupBy { case (p, c) => p }
       .leftJoin(ev.convert(positions).groupBy { case p => p })
@@ -273,7 +277,8 @@ trait Matrix[P <: Position] {
    *
    * @note Avoid using this for very large matrices.
    */
-  def toMap[D <: Dimension](slice: Slice[P, D])(implicit ev: PosDimDep[P, D]): ValuePipe[Map[slice.S, slice.C]] = {
+  def toMap[D <: Dimension](slice: Slice[P, D])(
+    implicit ev: PosDimDep[P, D]): ValuePipe[Map[slice.S, slice.C]] = {
     data
       .map { case (p, c) => (p, slice.toMap(p, c)) }
       .groupBy { case (p, m) => slice.selected(p) }
@@ -322,9 +327,7 @@ trait Matrix[P <: Position] {
         case ((lp, lt), (rp, rt)) => (lp, reducer.reduce(lt, rt))
       }
       .values
-      .flatMap {
-        case (p, t) => Miscellaneous.mapFlatten(reducer.presentMultiple(p, t))
-      }
+      .flatMap { case (p, t) => Misc.mapFlatten(reducer.presentMultiple(p, t)) }
   }
   /**
    * Reduce a [[Matrix]], using a user supplied value, and return the
@@ -349,8 +352,8 @@ trait Matrix[P <: Position] {
    *      [[position.ExpandablePosition]]
    */
   def reduceAndExpandWithValue[T, D <: Dimension, V](slice: Slice[P, D],
-    reducers: T,
-    value: ValuePipe[V])(implicit ev1: ReducerableMultipleWithValue[T, V],
+    reducers: T, value: ValuePipe[V])(
+      implicit ev1: ReducerableMultipleWithValue[T, V],
       ev2: PosDimDep[P, D]): TypedPipe[(slice.S#M, Content)] = {
     val reducer = ev1.convert(reducers)
 
@@ -365,9 +368,7 @@ trait Matrix[P <: Position] {
         case ((lp, lt), (rp, rt)) => (lp, reducer.reduce(lt, rt))
       }
       .values
-      .flatMap {
-        case (p, t) => Miscellaneous.mapFlatten(reducer.presentMultiple(p, t))
-      }
+      .flatMap { case (p, t) => Misc.mapFlatten(reducer.presentMultiple(p, t)) }
   }
 
   /**
@@ -381,9 +382,10 @@ trait Matrix[P <: Position] {
    *
    * @see [[partition.Partitioner]]
    */
-  def partition[T: Ordering](partitioner: Partitioner.Partition[T, P]): TypedPipe[(T, (P, Content))] = {
+  def partition[T: Ordering](
+    partitioner: Partitioner.Partition[T, P]): TypedPipe[(T, (P, Content))] = {
     data.flatMap {
-      case (p, c) => Miscellaneous.mapFlatten(partitioner(p, None), (p, c))
+      case (p, c) => Misc.mapFlatten(partitioner(p, None), (p, c))
     }
   }
   /**
@@ -402,7 +404,7 @@ trait Matrix[P <: Position] {
   def partitionWithValue[T: Ordering](partitioner: Partitioner.Partition[T, P],
     value: ValuePipe[SliceMap]): TypedPipe[(T, (P, Content))] = {
     data.flatMapWithValue(value) {
-      case ((p, c), vo) => Miscellaneous.mapFlatten(partitioner(p, vo), (p, c))
+      case ((p, c), vo) => Misc.mapFlatten(partitioner(p, vo), (p, c))
     }
   }
 
@@ -475,8 +477,8 @@ trait Matrix[P <: Position] {
    * @return A Scalding `TypedPipe[(P, `[[contents.Content]]`)]` consisting of
    *         the inner-join of the two matrices.
    */
-  def join[D <: Dimension](slice: Slice[P, D],
-    that: Matrix[P])(implicit ev: PosDimDep[P, D]): TypedPipe[(P, Content)] = {
+  def join[D <: Dimension](slice: Slice[P, D], that: Matrix[P])(
+    implicit ev: PosDimDep[P, D]): TypedPipe[(P, Content)] = {
     val keep = names(slice)
       .groupBy { case (p, i) => p }
       .join(that.names(slice).groupBy { case (p, i) => p })
@@ -602,9 +604,9 @@ trait ModifyableMatrix[P <: Position with ModifyablePosition] {
    *
    * @see [[position.PositionPipeable]]
    */
-  def set[T](positions: T,
-    value: Content)(implicit ev: PositionPipeable[T, P], flow: FlowDef,
-      mode: Mode): TypedPipe[(P, Content)] = {
+  def set[T](positions: T, value: Content)(
+    implicit ev: PositionPipeable[T, P], flow: FlowDef,
+    mode: Mode): TypedPipe[(P, Content)] = {
     set((positions, value))
   }
   /**
@@ -641,10 +643,11 @@ trait ModifyableMatrix[P <: Position with ModifyablePosition] {
    *
    * @see [[transform.Transformable]], [[transform.Transformer]]
    */
-  def transform[T](transformers: T)(implicit ev: Transformable[T]): TypedPipe[(P#S, Content)] = {
+  def transform[T](transformers: T)(
+    implicit ev: Transformable[T]): TypedPipe[(P#S, Content)] = {
     val t = ev.convert(transformers)
 
-    data.flatMap { case (p, c) => Miscellaneous.mapFlatten(t.present(p, c)) }
+    data.flatMap { case (p, c) => Misc.mapFlatten(t.present(p, c)) }
   }
   /**
    * Transform the [[contents.Content]] of a [[Matrix]] using a user
@@ -659,11 +662,12 @@ trait ModifyableMatrix[P <: Position with ModifyablePosition] {
    *
    * @see [[transform.Transformable]], [[transform.Transformer]]
    */
-  def transformWithValue[T, V](transformers: T, value: ValuePipe[V])(implicit ev: TransformableWithValue[T, V]): TypedPipe[(P#S, Content)] = {
+  def transformWithValue[T, V](transformers: T, value: ValuePipe[V])(
+    implicit ev: TransformableWithValue[T, V]): TypedPipe[(P#S, Content)] = {
     val t = ev.convert(transformers)
 
     data.flatMapWithValue(value) {
-      case ((p, c), vo) => Miscellaneous.mapFlatten(t.present(p, c,
+      case ((p, c), vo) => Misc.mapFlatten(t.present(p, c,
         vo.get.asInstanceOf[t.V]))
     }
   }
@@ -679,7 +683,8 @@ trait ModifyableMatrix[P <: Position with ModifyablePosition] {
    *
    * @see [[derive.Deriver]]
    */
-  def derive[D <: Dimension](slice: Slice[P, D], deriver: Deriver)(implicit ev: PosDimDep[P, D]): TypedPipe[(P#S, Content)] = {
+  def derive[D <: Dimension](slice: Slice[P, D], deriver: Deriver)(
+    implicit ev: PosDimDep[P, D]): TypedPipe[(P#S, Content)] = {
     data
       .groupBy { case (p, c) => slice.selected(p) }
       .sortBy { case (p, c) => slice.remainder(p) }
@@ -688,7 +693,7 @@ trait ModifyableMatrix[P <: Position with ModifyablePosition] {
         case (Some((t, c)), curr) => Some(deriver.present(curr, t))
       }
       .flatMap {
-        case (p, Some((t, oe @ Some(_)))) => Miscellaneous.mapFlatten(oe)
+        case (p, Some((t, oe @ Some(_)))) => Misc.mapFlatten(oe)
         case _ => List()
       }
   }
@@ -724,7 +729,9 @@ trait ModifyableMatrix[P <: Position with ModifyablePosition] {
    * @note This joins `values` onto this [[Matrix]], as such it can
    *       be used for imputing missing values.
    */
-  def fill[D <: Dimension](slice: Slice[P, D], values: TypedPipe[(P, Content)])(implicit ev: PosDimDep[P, D]): TypedPipe[(P, Content)] = {
+  def fill[D <: Dimension](slice: Slice[P, D],
+    values: TypedPipe[(P, Content)])(
+      implicit ev: PosDimDep[P, D]): TypedPipe[(P, Content)] = {
     val dense = domain
       .groupBy { case p => slice.selected(p) }
       .join(values.groupBy { case (p, c) => slice.selected(p) })
@@ -751,7 +758,9 @@ trait ModifyableMatrix[P <: Position with ModifyablePosition] {
    *         `[[contents.Content]]`)]` where the dimension `dim` has been
    *         renamed.
    */
-  def rename[D <: Dimension](dim: D, renamer: (Dimension, P, Content) => P#S)(implicit ev: PosDimDep[P, D]): TypedPipe[(P#S, Content)] = {
+  def rename[D <: Dimension](dim: D,
+    renamer: (Dimension, P, Content) => P#S)(
+      implicit ev: PosDimDep[P, D]): TypedPipe[(P#S, Content)] = {
     data.map { case (p, c) => (renamer(dim, p, c), c) }
   }
   /**
@@ -766,7 +775,9 @@ trait ModifyableMatrix[P <: Position with ModifyablePosition] {
    *         `[[contents.Content]]`)]` where the dimension `dim` has been
    *         renamed.
    */
-  def renameWithValue[D <: Dimension, V](dim: D, renamer: (Dimension, P, Content, V) => P#S, value: ValuePipe[V])(implicit ev: PosDimDep[P, D]): TypedPipe[(P#S, Content)] = {
+  def renameWithValue[D <: Dimension, V](dim: D,
+    renamer: (Dimension, P, Content, V) => P#S, value: ValuePipe[V])(
+      implicit ev: PosDimDep[P, D]): TypedPipe[(P#S, Content)] = {
     data.mapWithValue(value) {
       case ((p, c), vo) => (renamer(dim, p, c, vo.get), c)
     }
@@ -786,7 +797,9 @@ trait ModifyableMatrix[P <: Position with ModifyablePosition] {
    *       or lower triangular matrices to be returned (this can be done by
    *       comparing the approriate [[position.coordinate.Coordinate]]s)
    */
-  def pairwise[D <: Dimension](slice: Slice[P, D], f: ((P, Content), (P, Content)) => Option[(P#S, Content)])(implicit ev: PosDimDep[P, D]): TypedPipe[(P#S, Content)] = {
+  def pairwise[D <: Dimension](slice: Slice[P, D],
+    f: ((P, Content), (P, Content)) => Option[(P#S, Content)])(
+      implicit ev: PosDimDep[P, D]): TypedPipe[(P#S, Content)] = {
     val inverse = slice.inverse
     val wanted = names(slice).map { case (p, i) => p }
 
@@ -830,7 +843,8 @@ trait ReduceableMatrix[P <: Position with ReduceablePosition] {
    *
    * @see [[position.ReduceablePosition]], [[Reduction]]
    */
-  def squash[D <: Dimension](dim: D, reduction: Reduction[P])(implicit ev: PosDimDep[P, D]): TypedPipe[(P#L, Content)] = {
+  def squash[D <: Dimension](dim: D, reduction: Reduction[P])(
+    implicit ev: PosDimDep[P, D]): TypedPipe[(P#L, Content)] = {
     data
       .groupBy { case (p, c) => p.remove(dim) }
       .reduce[(P, Content)] { case (lc, rc) => reduction(dim, lc, rc) }
@@ -870,7 +884,9 @@ trait ReduceableMatrix[P <: Position with ReduceablePosition] {
    *
    * @see [[reduce.Reducer]], [[Slice]]
    */
-  def reduce[D <: Dimension](slice: Slice[P, D], reducer: Reducer with Prepare with PresentSingle)(implicit ev: PosDimDep[P, D]): TypedPipe[(slice.S, Content)] = {
+  def reduce[D <: Dimension](slice: Slice[P, D],
+    reducer: Reducer with Prepare with PresentSingle)(
+      implicit ev: PosDimDep[P, D]): TypedPipe[(slice.S, Content)] = {
     data
       .map { case (p, c) => (slice.selected(p), reducer.prepare(slice, p, c)) }
       .groupBy { case (p, t) => p }
@@ -891,7 +907,10 @@ trait ReduceableMatrix[P <: Position with ReduceablePosition] {
    *
    * @see [[reduce.Reducer]], [[Slice]]
    */
-  def reduceWithValue[D <: Dimension, W](slice: Slice[P, D], reducer: Reducer with PrepareWithValue with PresentSingle { type V >: W }, value: ValuePipe[W])(implicit ev: PosDimDep[P, D]): TypedPipe[(slice.S, Content)] = {
+  def reduceWithValue[D <: Dimension, W](slice: Slice[P, D],
+    reducer: Reducer with PrepareWithValue with PresentSingle { type V >: W },
+    value: ValuePipe[W])(
+      implicit ev: PosDimDep[P, D]): TypedPipe[(slice.S, Content)] = {
     data
       .leftCross(value)
       .map {
@@ -927,10 +946,11 @@ trait ExpandableMatrix[P <: Position with ExpandablePosition] {
    *
    * @see [[transform.TransformableExpanded]], [[transform.Transformer]]
    */
-  def transformAndExpand[T](transformers: T)(implicit ev: TransformableExpanded[T]): TypedPipe[(P#M, Content)] = {
+  def transformAndExpand[T](transformers: T)(
+    implicit ev: TransformableExpanded[T]): TypedPipe[(P#M, Content)] = {
     val t = ev.convert(transformers)
 
-    data.flatMap { case (p, c) => Miscellaneous.mapFlatten(t.present(p, c)) }
+    data.flatMap { case (p, c) => Misc.mapFlatten(t.present(p, c)) }
   }
   /**
    * Transform the [[contents.Content]] of a [[Matrix]] using a user supplied
@@ -947,11 +967,12 @@ trait ExpandableMatrix[P <: Position with ExpandablePosition] {
    * @see [[transform.TransformableExpandedWithValue]],
    *      [[transform.Transformer]]
    */
-  def transformAndExpandWithValue[T, V](transformers: T, value: ValuePipe[V])(implicit ev: TransformableExpandedWithValue[T, V]): TypedPipe[(P#M, Content)] = {
+  def transformAndExpandWithValue[T, V](transformers: T, value: ValuePipe[V])(
+    implicit ev: TransformableExpandedWithValue[T, V]): TypedPipe[(P#M, Content)] = {
     val t = ev.convert(transformers)
 
     data.flatMapWithValue(value) {
-      case ((p, c), vo) => Miscellaneous.mapFlatten(t.present(p, c,
+      case ((p, c), vo) => Misc.mapFlatten(t.present(p, c,
         vo.get.asInstanceOf[t.V]))
     }
   }
@@ -989,35 +1010,40 @@ object Matrix {
    * Conversion from `TypedPipe[(`[[position.Position1D]]`,
    * `[[contents.Content]]`)]` to a [[Matrix1D]].
    */
-  implicit def typedPipePosition1DContent(data: TypedPipe[(Position1D, Content)]): Matrix1D = {
+  implicit def typedPipePosition1DContent(
+    data: TypedPipe[(Position1D, Content)]): Matrix1D = {
     new Matrix1D(data)
   }
   /**
    * Conversion from `TypedPipe[(`[[position.Position2D]]`,
    * `[[contents.Content]]`)]` to a [[Matrix2D]].
    */
-  implicit def typedPipePosition2DContent(data: TypedPipe[(Position2D, Content)]): Matrix2D = {
+  implicit def typedPipePosition2DContent(
+    data: TypedPipe[(Position2D, Content)]): Matrix2D = {
     new Matrix2D(data)
   }
   /**
    * Conversion from `TypedPipe[(`[[position.Position3D]]`,
    * `[[contents.Content]]`)]` to a [[Matrix3D]].
    */
-  implicit def typedPipePosition3DContent(data: TypedPipe[(Position3D, Content)]): Matrix3D = {
+  implicit def typedPipePosition3DContent(
+    data: TypedPipe[(Position3D, Content)]): Matrix3D = {
     new Matrix3D(data)
   }
   /**
    * Conversion from `TypedPipe[(`[[position.Position4D]]`,
    * `[[contents.Content]]`)]` to a [[Matrix4D]].
    */
-  implicit def typedPipePosition4DContent(data: TypedPipe[(Position4D, Content)]): Matrix4D = {
+  implicit def typedPipePosition4DContent(
+    data: TypedPipe[(Position4D, Content)]): Matrix4D = {
     new Matrix4D(data)
   }
   /**
    * Conversion from `TypedPipe[(`[[position.Position5D]]`,
    * `[[contents.Content]]`)]` to a [[Matrix5D]].
    */
-  implicit def typedPipePosition5DContent(data: TypedPipe[(Position5D, Content)]): Matrix5D = {
+  implicit def typedPipePosition5DContent(
+    data: TypedPipe[(Position5D, Content)]): Matrix5D = {
     new Matrix5D(data)
   }
 
@@ -1227,7 +1253,9 @@ object Matrix {
  *
  * @param data `TypedPipe[(`[[position.Position1D]]`, `[[contents.Content]]`)]`.
  */
-class Matrix1D(val data: TypedPipe[(Position1D, Content)]) extends Matrix[Position1D] with ModifyableMatrix[Position1D] with ExpandableMatrix[Position1D] {
+class Matrix1D(val data: TypedPipe[(Position1D, Content)])
+  extends Matrix[Position1D] with ModifyableMatrix[Position1D]
+  with ExpandableMatrix[Position1D] {
   def domain(): TypedPipe[Position1D] = {
     names(Over(First)).map { case (p, i) => p }
   }
@@ -1239,7 +1267,9 @@ class Matrix1D(val data: TypedPipe[(Position1D, Content)]) extends Matrix[Positi
  *
  * @param data `TypedPipe[(`[[position.Position2D]]`, `[[contents.Content]]`)]`.
  */
-class Matrix2D(val data: TypedPipe[(Position2D, Content)]) extends Matrix[Position2D] with ModifyableMatrix[Position2D] with ReduceableMatrix[Position2D] with ExpandableMatrix[Position2D] {
+class Matrix2D(val data: TypedPipe[(Position2D, Content)])
+  extends Matrix[Position2D] with ModifyableMatrix[Position2D]
+  with ReduceableMatrix[Position2D] with ExpandableMatrix[Position2D] {
   def domain(): TypedPipe[Position2D] = {
     names(Over(First))
       .map { case (Position1D(c), i) => c }
@@ -1266,12 +1296,15 @@ class Matrix2D(val data: TypedPipe[(Position2D, Content)]) extends Matrix[Positi
     data.map { case (p, c) => (p.permute(List(first, second)), c) }
   }
 
-  def correlation[D <: Dimension](slice: Slice[Position2D, D])(implicit ev: PosDimDep[Position2D, D]): TypedPipe[(Position1D, Content)] = {
-    implicit def typedPipeSliceSMContent(data: TypedPipe[(slice.S#M, Content)]): Matrix2D = {
+  def correlation[D <: Dimension](slice: Slice[Position2D, D])(
+    implicit ev: PosDimDep[Position2D, D]): TypedPipe[(Position1D, Content)] = {
+    implicit def typedPipeSliceSMContent(
+      data: TypedPipe[(slice.S#M, Content)]): Matrix2D = {
       new Matrix2D(data.asInstanceOf[TypedPipe[(Position2D, Content)]])
     }
 
-    implicit def typedPipeSliceSContent(data: TypedPipe[(slice.S, Content)]): Matrix1D = {
+    implicit def typedPipeSliceSContent(
+      data: TypedPipe[(slice.S, Content)]): Matrix1D = {
       new Matrix1D(data.asInstanceOf[TypedPipe[(Position1D, Content)]])
     }
 
@@ -1405,9 +1438,9 @@ class Matrix2D(val data: TypedPipe[(Position2D, Content)]) extends Matrix[Positi
 
   def writeVW[D <: Dimension](slice: Slice[Position2D, D],
     labels: TypedPipe[(Position1D, Content)], file: String,
-    postfix: String = ".dict",
-    separator: String = ":")(implicit ev: PosDimDep[Position2D, D],
-      flow: FlowDef, mode: Mode): TypedPipe[(Position2D, Content)] = {
+    postfix: String = ".dict", separator: String = ":")(
+      implicit ev: PosDimDep[Position2D, D], flow: FlowDef,
+      mode: Mode): TypedPipe[(Position2D, Content)] = {
     writeVWWithNames(slice, labels, file, names(Along(slice.dimension)),
       postfix, separator)
   }
@@ -1538,9 +1571,8 @@ class Matrix2D(val data: TypedPipe[(Position2D, Content)]) extends Matrix[Positi
    *       used by the tm package). This format should be compatible.
    */
   def writeIJV(file: String, postfixI: String = ".dict.i",
-    postfixJ: String = ".dict.j",
-    separator: String = "|")(implicit flow: FlowDef,
-      mode: Mode): TypedPipe[(Position2D, Content)] = {
+    postfixJ: String = ".dict.j", separator: String = "|")(
+      implicit flow: FlowDef, mode: Mode): TypedPipe[(Position2D, Content)] = {
     writeIJVWithNames(file, names(Over(First)), names(Over(Second)),
       postfixI, postfixJ, separator)
   }
@@ -1567,9 +1599,8 @@ class Matrix2D(val data: TypedPipe[(Position2D, Content)]) extends Matrix[Positi
    */
   def writeIJVWithNames(file: String, namesI: TypedPipe[(Position1D, Long)],
     namesJ: TypedPipe[(Position1D, Long)], postfixI: String = ".dict.i",
-    postfixJ: String = ".dict.j",
-    separator: String = "|")(implicit flow: FlowDef,
-      mode: Mode): TypedPipe[(Position2D, Content)] = {
+    postfixJ: String = ".dict.j", separator: String = "|")(
+      implicit flow: FlowDef, mode: Mode): TypedPipe[(Position2D, Content)] = {
     val dictI = namesI.groupBy { case (p, i) => p }
     val dictJ = namesJ.groupBy { case (p, j) => p }
 
@@ -1606,7 +1637,9 @@ class Matrix2D(val data: TypedPipe[(Position2D, Content)]) extends Matrix[Positi
  *
  * @param data `TypedPipe[(`[[position.Position3D]]`, `[[contents.Content]]`)]`.
  */
-class Matrix3D(val data: TypedPipe[(Position3D, Content)]) extends Matrix[Position3D] with ModifyableMatrix[Position3D] with ReduceableMatrix[Position3D] with ExpandableMatrix[Position3D] {
+class Matrix3D(val data: TypedPipe[(Position3D, Content)])
+  extends Matrix[Position3D] with ModifyableMatrix[Position3D]
+  with ReduceableMatrix[Position3D] with ExpandableMatrix[Position3D] {
   def domain(): TypedPipe[Position3D] = {
     names(Over(First))
       .map { case (Position1D(c), i) => c }
@@ -1645,7 +1678,9 @@ class Matrix3D(val data: TypedPipe[(Position3D, Content)]) extends Matrix[Positi
  * @param data `TypedPipe[(`[[position.Position4D]]`,
  *             `[[contents.Content]]`)]`.
  */
-class Matrix4D(val data: TypedPipe[(Position4D, Content)]) extends Matrix[Position4D] with ModifyableMatrix[Position4D] with ReduceableMatrix[Position4D] with ExpandableMatrix[Position4D] {
+class Matrix4D(val data: TypedPipe[(Position4D, Content)])
+  extends Matrix[Position4D] with ModifyableMatrix[Position4D]
+  with ReduceableMatrix[Position4D] with ExpandableMatrix[Position4D] {
   def domain(): TypedPipe[Position4D] = {
     names(Over(First))
       .map { case (Position1D(c), i) => c }
@@ -1671,7 +1706,12 @@ class Matrix4D(val data: TypedPipe[(Position4D, Content)]) extends Matrix[Positi
    * @see [[position.coordinate.Coordinate]], [[position.Position]],
    *      [[position.Dimension]]
    */
-  def permute[D <: Dimension, E <: Dimension, F <: Dimension, G <: Dimension](first: D, second: E, third: F, fourth: G)(implicit ev1: PosDimDep[Position4D, D], ev2: PosDimDep[Position4D, E], ev3: PosDimDep[Position4D, F], ev4: PosDimDep[Position4D, G], ne1: D =!= E, ne2: D =!= F, ne3: D =!= G, ne4: E =!= F, ne5: E =!= G, ne6: F =!= G): TypedPipe[(Position4D, Content)] = {
+  def permute[D <: Dimension, E <: Dimension, F <: Dimension, G <: Dimension](
+    first: D, second: E, third: F, fourth: G)(
+      implicit ev1: PosDimDep[Position4D, D], ev2: PosDimDep[Position4D, E],
+      ev3: PosDimDep[Position4D, F], ev4: PosDimDep[Position4D, G],
+      ne1: D =!= E, ne2: D =!= F, ne3: D =!= G, ne4: E =!= F, ne5: E =!= G,
+      ne6: F =!= G): TypedPipe[(Position4D, Content)] = {
     data.map {
       case (p, c) => (p.permute(List(first, second, third, fourth)), c)
     }
@@ -1685,7 +1725,9 @@ class Matrix4D(val data: TypedPipe[(Position4D, Content)]) extends Matrix[Positi
  * @param data `TypedPipe[(`[[position.Position5D]]`,
  *             `[[contents.Content]]`)]`.
  */
-class Matrix5D(val data: TypedPipe[(Position5D, Content)]) extends Matrix[Position5D] with ModifyableMatrix[Position5D] with ReduceableMatrix[Position5D] {
+class Matrix5D(val data: TypedPipe[(Position5D, Content)])
+  extends Matrix[Position5D] with ModifyableMatrix[Position5D]
+  with ReduceableMatrix[Position5D] {
   def domain(): TypedPipe[Position5D] = {
     names(Over(First))
       .map { case (Position1D(c), i) => c }
@@ -1714,7 +1756,13 @@ class Matrix5D(val data: TypedPipe[(Position5D, Content)]) extends Matrix[Positi
    * @see [[position.coordinate.Coordinate]], [[position.Position]],
    *      [[position.Dimension]]
    */
-  def permute[D <: Dimension, E <: Dimension, F <: Dimension, G <: Dimension, H <: Dimension](first: D, second: E, third: F, fourth: G, fifth: H)(implicit ev1: PosDimDep[Position5D, D], ev2: PosDimDep[Position5D, E], ev3: PosDimDep[Position5D, F], ev4: PosDimDep[Position5D, G], ev5: PosDimDep[Position5D, H], ne1: D =!= E, ne2: D =!= F, ne3: D =!= G, ne4: D =!= H, ne5: E =!= F, ne6: E =!= G, ne7: E =!= H, ne8: F =!= G, ne9: F =!= H, ne10: G =!= H): TypedPipe[(Position5D, Content)] = {
+  def permute[D <: Dimension, E <: Dimension, F <: Dimension, G <: Dimension, H <: Dimension](
+    first: D, second: E, third: F, fourth: G, fifth: H)(
+      implicit ev1: PosDimDep[Position5D, D], ev2: PosDimDep[Position5D, E],
+      ev3: PosDimDep[Position5D, F], ev4: PosDimDep[Position5D, G],
+      ev5: PosDimDep[Position5D, H], ne1: D =!= E, ne2: D =!= F, ne3: D =!= G,
+      ne4: D =!= H, ne5: E =!= F, ne6: E =!= G, ne7: E =!= H, ne8: F =!= G,
+      ne9: F =!= H, ne10: G =!= H): TypedPipe[(Position5D, Content)] = {
     data.map {
       case (p, c) => (p.permute(List(first, second, third, fourth, fifth)), c)
     }
@@ -1751,7 +1799,9 @@ object Matrixable {
    * Converts a `(`[[position.PositionPipeable]]`, `[[contents.Content]]`)]`
    * into a `TypedPipe[(P, `[[contents.Content]]`)]`.
    */
-  implicit def PositionPipeableContentTupleMatrixable[T, P <: Position](implicit ev: PositionPipeable[T, P], flow: FlowDef, mode: Mode): Matrixable[(T, Content), P] = {
+  implicit def PositionPipeableContentTupleMatrixable[T, P <: Position](
+    implicit ev: PositionPipeable[T, P], flow: FlowDef,
+    mode: Mode): Matrixable[(T, Content), P] = {
     new Matrixable[(T, Content), P] {
       def convert(t: (T, Content)): TypedPipe[(P, Content)] = {
         ev.convert(t._1).map { case p => (p, t._2) }
