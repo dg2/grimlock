@@ -30,6 +30,7 @@ import au.com.cba.omnia.grimlock.position._
 import au.com.cba.omnia.grimlock.position.coordinate._
 import au.com.cba.omnia.grimlock.position.PositionPipe._
 import au.com.cba.omnia.grimlock.reduce._
+import au.com.cba.omnia.grimlock.sample._
 import au.com.cba.omnia.grimlock.transform._
 import au.com.cba.omnia.grimlock.Types._
 
@@ -420,14 +421,16 @@ class Test15(args : Args) extends Job(args) {
 
 class Test16(args : Args) extends Job(args) {
 
-  val data = TestReader.read4TupleDataAddDate(args("input"))
+  val data: Matrix3D = TestReader.read4TupleDataAddDate(args("input"))
 
-  def sampler() = (pos: Position3D) => {
-    (pos.get(First).toString.hashCode % 25) == 0
+  case class HashSample() extends Sampler with Select {
+    def select[P <: Position](pos: P): Boolean = {
+      (pos.get(First).toString.hashCode % 25) == 0
+    }
   }
 
   data
-    .sample(sampler)
+    .sample(HashSample())
     .persist("./tmp/smp1.out")
 }
 

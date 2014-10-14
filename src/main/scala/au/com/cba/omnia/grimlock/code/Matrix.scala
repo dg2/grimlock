@@ -24,6 +24,7 @@ import au.com.cba.omnia.grimlock.Matrix._
 import au.com.cba.omnia.grimlock.partition._
 import au.com.cba.omnia.grimlock.position._
 import au.com.cba.omnia.grimlock.reduce._
+import au.com.cba.omnia.grimlock.sample._
 import au.com.cba.omnia.grimlock.transform._
 import au.com.cba.omnia.grimlock.utilities.{ =!=, Miscellaneous => Misc }
 
@@ -378,7 +379,8 @@ trait Matrix[P <: Position] {
    *
    * @see [[partition.Partitioner]]
    */
-  def partition[S: Ordering](partitioner: Partitioner with Assign { type T = S }): TypedPipe[(S, (P, Content))] = {
+  def partition[S: Ordering](
+    partitioner: Partitioner with Assign { type T = S }): TypedPipe[(S, (P, Content))] = {
     data.flatMap {
       case (p, c) => Misc.mapFlatten(partitioner.assign(p), (p, c))
     }
@@ -435,25 +437,27 @@ trait Matrix[P <: Position] {
    * Sample a [[Matrix]] according to some function `f`. It keeps only those
    * cells for which `f` returns true.
    *
-   * @param f Sampling function.
+   * @param sampler Sampling function.
    *
    * @return A Scalding `TypedPipe[(P, `[[contents.Content]]`)]`.
    */
-  def sample(f: (P) => Boolean): TypedPipe[(P, Content)] = {
-    data.filter { case (p, c) => f(p) }
+  def sample(sampler: Sampler with Select): TypedPipe[(P, Content)] = {
+    data.filter { case (p, c) => sampler.select(p) }
   }
   /**
    * Sample a [[Matrix]] according to some function `f` using a user supplied
    * value. It keeps only those cells for which `f` returns true.
    *
-   * @param f     Sampling function.
+   * @param sampler Sampling function.
    * @param value A `ValuePipe` holding a user supplied value.
    *
    * @return A Scalding `TypedPipe[(P, `[[contents.Content]]`)]`.
    */
-  def sampleWithValue[V](f: (P, V) => Boolean,
-    value: ValuePipe[V]): TypedPipe[(P, Content)] = {
-    data.filterWithValue(value) { case ((p, c), vo) => f(p, vo.get) }
+  def sampleWithValue[W](sampler: Sampler with SelectWithValue { type V = W },
+    value: ValuePipe[W]): TypedPipe[(P, Content)] = {
+    data.filterWithValue(value) {
+      case ((p, c), vo) => sampler.select(p, vo.get)
+    }
   }
 
   /**
@@ -816,6 +820,7 @@ trait ModifyableMatrix[P <: Position with ModifyablePosition] {
       .join(values)
       .flatMap { case (_, (((l, r, o), (p, c)), (q, d))) => f((p, c), (q, d)) }
   }
+  // TODO: Add pairwiseWithValue
 }
 
 /** Define operations that reduce a [[Matrix]]'s dimensions. */
@@ -847,6 +852,7 @@ trait ReduceableMatrix[P <: Position with ReduceablePosition] {
       .reduce[(P, Content)] { case (lc, rc) => reduction(dim, lc, rc) }
       .map { case (p, c) => (p, c._2) }
   }
+  // TODO: Add squashWithValue
 
   /**
    * Melt one dimension of a [[Matrix]] into another.
@@ -870,6 +876,7 @@ trait ReduceableMatrix[P <: Position with ReduceablePosition] {
       ev2: PosDimDep[P, E], ne: D =!= E): TypedPipe[(P#L, Content)] = {
     data.map { case (p, c) => (p.melt(dim, into, separator), c) }
   }
+  // TODO: Add meltWithValue
 
   /**
    * Reduce a [[Matrix]].
@@ -1187,6 +1194,9 @@ object Matrix {
    *
    * @see [[Matrix3D]]
    */
+  // TODO: 1/ Rename to read3DWithDictionary
+  //       2/ Add Dimension from which to do lookup (with PosDimDep)
+  //       3/ Add a read2DWithDictionary version
   def readIvory(file: String, dict: Dictionary,
     first: Codex with CoordinateCodex = StringCodex,
     second: Codex with CoordinateCodex = StringCodex,
@@ -1284,6 +1294,7 @@ class Matrix2D(val data: TypedPipe[(Position2D, Content)])
       ne: D =!= E): TypedPipe[(Position2D, Content)] = {
     data.map { case (p, c) => (p.permute(List(first, second)), c) }
   }
+  // TODO: Add permuteWithValue
 
   def correlation[D <: Dimension](slice: Slice[Position2D, D])(
     implicit ev: PosDimDep[Position2D, D]): TypedPipe[(Position1D, Content)] = {
@@ -1330,6 +1341,7 @@ class Matrix2D(val data: TypedPipe[(Position2D, Content)])
       .reduce(slice, Sum())
       .transformWithValue(Divide(First, "sum"), squared)
   }
+  // TODO: Add correlateWithValue
 
   /**
    * Persist a [[Matrix2D]] as a CSV file.
@@ -1658,6 +1670,7 @@ class Matrix3D(val data: TypedPipe[(Position3D, Content)])
       ne3: E =!= F): TypedPipe[(Position3D, Content)] = {
     data.map { case (p, c) => (p.permute(List(first, second, third)), c) }
   }
+  // TODO: Add permuteWithValue
 }
 
 /**
@@ -1705,6 +1718,7 @@ class Matrix4D(val data: TypedPipe[(Position4D, Content)])
       case (p, c) => (p.permute(List(first, second, third, fourth)), c)
     }
   }
+  // TODO: Add permuteWithValue
 }
 
 /**
@@ -1756,6 +1770,7 @@ class Matrix5D(val data: TypedPipe[(Position5D, Content)])
       case (p, c) => (p.permute(List(first, second, third, fourth, fifth)), c)
     }
   }
+  // TODO: Add permuteWithValue
 }
 
 /**

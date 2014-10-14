@@ -43,6 +43,7 @@ trait Deriver {
    *
    * @return The state for this object.
    */
+  // TODO: Add with value version
   def prepare[P <: Position](curr: (P, Content)): T
 
   /**

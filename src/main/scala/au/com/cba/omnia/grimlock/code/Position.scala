@@ -149,6 +149,7 @@ trait ReduceablePosition { self: Position =>
     less(h ::: t.drop(1))
   }
 
+  // TODO: Can this be put into a case object that?
   type O
   type A
   def toOverMapValue(r: L, c: Content): O
